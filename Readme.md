@@ -4,7 +4,7 @@ NOTE: This is a work in progress, here is a todo list
 ## TODO:
 - [ ] Add estimated time of completion
 - [ ] Rewrite output, make it less ugly, proposed layout: `[AutoRclone Rewrite] (Job Name) amount transferred/total transfer amount @ <transfer speed here> SA: <num of SA here> ETA: <ETA Here>`
-- [ ] Add command line arg to choose between copy or move
+- [x] Add command line args to choose between copy, move or sync
 - [x] Add bandwidth Limiting 
 - [ ] Implement proper support for encrypted sources and destinations
 - [ ] Remove rc connect failed output messages to reduce confusion
@@ -24,3 +24,8 @@ NOTE: This is a work in progress, here is a todo list
 - Implemented bandwidth limiting with `--bwlimit` arg
 - Added many command line args to change rclone settings instead of them being hardcoded
 - Fixed some readme formatting
+- Added `.gitignore`
+- Moved a lot of functions from main script to seperate files
+- Added rclone config parser
+- Added copy and move args
+- Remove support for python 2
