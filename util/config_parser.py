@@ -98,6 +98,3 @@ def parse_config(file_path):
 
         remotes.append(new_remote)
     return remotes
-
-
-print(parse_config('rclone.conf'))

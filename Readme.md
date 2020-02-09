@@ -10,7 +10,7 @@ NOTE: This is a work in progress, here is a todo list
 - [ ] Remove rc connect failed output messages to reduce confusion
 - [x] Add more command line args to set rclone args
 - [x] Make rclone command much less hardcoded
-- [ ] Allow reading remotes from external rclone config
+- [x] Allow reading remotes from external rclone config
 
 *Instructions will be written once the rewrite is complete.*
 
@@ -30,3 +30,5 @@ NOTE: This is a work in progress, here is a todo list
 - Added copy and move args
 - Remove support for python 2
 - Implement rclone config parser
+- Remove todo from top of `autorclone.py`
+- Moved source and destination parsing outside of massive loop to increase efficiency when generating config files

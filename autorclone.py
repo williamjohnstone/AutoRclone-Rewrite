@@ -1,24 +1,10 @@
-# AutoRclone Rewrite
-#
-# NOTE: This is a work in progress, here is a todo list
-# TODO:
-# - [ ] Add estimated time of completion
-# - [ ] Rewrite output, make it less ugly, proposed layout: [AutoRclone Rewrite] (Job Name) amount transferred/total transfer amount @ <transfer speed here> SA: <num of SA here> ETA: <ETA Here>
-# - [x] Add command line arg to choose between copy or move
-# - [x] Add bandwidth Limiting 
-# - [ ] Implement proper support for encrypted sources and destinations
-# - [ ] Remove rc connect failed output messages to reduce confusion
-# - [x] Add more command line args to set rclone args
-# - [x] Make rclone command much less hardcoded
-# - [ ] Allow reading remotes from external rclone config
-
 import json
 import io
 import subprocess
 import sys
 import time
 from signal import signal, SIGINT
-from util import arg_parser, config_gen, config_parser, helpers
+from util import arg_parser, config_gen, helpers
 
 # =================modify here=================
 logfile = "log_rclone.txt"  # log file: tail -f log_rclone.txt
@@ -63,15 +49,9 @@ def main():
     id = args.begin_sa_id
     end_id = args.end_sa_id
 
-    config_file = args.rclone_config_file
-    if config_file is None:
-        print('generating rclone config file.')
-        config_file, end_id = config_gen.gen_rclone_cfg(args)
-        print('rclone config file generated.')
-    else:
-        return print('not supported yet.')
-        pass
-        # need parse labels from config files
+    print('generating rclone config file.')
+    config_file, end_id = config_gen.gen_rclone_cfg(args)
+    print('rclone config file generated.')
 
     time_start = time.time()
     print("Start: {}".format(time.strftime("%H:%M:%S")))

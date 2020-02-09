@@ -13,17 +13,17 @@ def parse_args():
     parser.add_argument('--sync', action='store_true',
                         help='Sync the source to the destination, changing the destination only. Doesn’t transfer unchanged files')
 
-    parser.add_argument('-s', '--source_id', type=str,
-                        help='the id of source. Team Drive id or publicly shared folder id')
+    parser.add_argument('-s', '--source', type=str,
+                        help='The source of your files. ID of Team Drive, ID of publicly shared folder or an rclone remote (Must use --rclone_config_file)')
 
-    parser.add_argument('-d', '--destination_id', type=str, required=True,
-                        help='the id of destination. Team Drive id or publicly shared folder id')
+    parser.add_argument('-d', '--destination', type=str, required=True,
+                        help='The destination for your files. ID of Team Drive, ID of publicly shared folder or an rclone remote (Must use --rclone_config_file)')
 
     parser.add_argument('-sp', '--source_path', type=str, default='',
-                        help='the folder path of source. In Google Drive or local.')
+                        help='The folder path inside source. (Local Path or Path in Google Drive)')
 
     parser.add_argument('-dp', '--destination_path', type=str, default='',
-                        help='the folder path of destination. In Google Drive.')
+                        help='The folder path of the destination. (in Google Drive)')
 
     # if there are some special symbols in source path, please use this
     # path id (publicly shared folder or folder inside team drive)
@@ -45,19 +45,14 @@ def parse_args():
     parser.add_argument('-e', '--end_sa_id', type=int, default=600,
                         help='the end id of sa for destination')
 
-    # TODO: re-implement
-    #parser.add_argument('-c', '--rclone_config_file', type=str,
-    #                    help='config file path of rclone')
+    parser.add_argument('-c', '--rclone_config_file', type=str,
+                        help='Path to existing config file with the source and destination remotes')
     
     parser.add_argument('-test', '--test_only', action='store_true',
                         help='for test: make rclone print some more information.')
 
     parser.add_argument('-t', '--dry_run', action='store_true',
                         help='for test: make rclone dry-run.')
-
-    # TODO: Reimplement
-    #parser.add_argument('--crypt', action="store_true",
-    #                    help='for test: crypt remote destination.')
 
     parser.add_argument('--bwlimit', type=str, default='0',
                         help='Specify the desired bandwidth in kBytes/s, or use a suffix b|k|M|G. The default is 0 which means to not limit bandwidth. eg. 10M')
