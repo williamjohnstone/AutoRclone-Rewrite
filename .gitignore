@@ -5,3 +5,4 @@ __pycache__/
 
 # macOS stuff
 .DS_STORE
+rclone.conf
