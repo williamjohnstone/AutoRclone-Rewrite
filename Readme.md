@@ -29,3 +29,4 @@ NOTE: This is a work in progress, here is a todo list
 - Added rclone config parser
 - Added copy and move args
 - Remove support for python 2
+- Implement rclone config parser
