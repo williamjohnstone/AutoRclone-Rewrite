@@ -25,7 +25,6 @@ def print_during(time_start):
 
 
 def check_rclone_exists():
-    # promote if user has not install rclone
     rclone_prog = 'rclone'
     if is_windows():
         rclone_prog += ".exe"
@@ -33,3 +32,23 @@ def check_rclone_exists():
     if ret is None:
         sys.exit("To use AutoRclone you must install rclone first: https://rclone.org/downloads/")
     return ret
+
+def convert_bytes_to_best_unit(bytes_value):
+    value_tmp = bytes_value * 1e-12
+    if value_tmp >= 1:
+        return str(round(value_tmp, 1)) + "TB"
+
+    value_tmp = bytes_value * 1e-9
+    if value_tmp >= 1:
+        return str(round(value_tmp, 1)) + "GB"
+
+    value_tmp = bytes_value * 1e-6
+    if value_tmp >= 1:
+        return str(round(value_tmp, 1)) + "MB"
+
+    value_tmp = bytes_value * 1e-3
+    if value_tmp >= 1:
+        return str(round(value_tmp, 1)) + "KB"
+
+    return str(bytes_value) + "B"
+

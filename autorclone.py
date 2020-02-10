@@ -6,22 +6,14 @@ import time
 from signal import signal, SIGINT
 from util import arg_parser, config_gen, helpers
 
-# =================modify here=================
-logfile = "log_rclone.txt"  # log file: tail -f log_rclone.txt
+logfile = "rclone_output.log"  # log file: tail -f log_rclone.txt
 PID = 0
 
 # parameters for this script
-SIZE_GB_MAX = 735  # if one account has already copied 735GB, switch to next account
-CNT_DEAD_RETRY = 100  # if there is no files be copied for 100 times, switch to next account
-CNT_SA_EXIT = 3  # if continually switch account for 3 times stop script
+MAX_TRANSFER_GB = 735  # if one account has already copied 735GB, switch to next account
+CNT_DEAD_RETRY = 100  # if no bytes are transferred after 100 loops exit
+SA_EXIT_TRESHOLD = 3  # if continually switch account for 3 times stop script
 
-# change it when u know what are u doing
-# paramters for rclone.
-# If TPSLIMITxTRANSFERS is too big, will cause 404 user rate limit error,
-# especially for tasks with a lot of small files
-#TPSLIMIT = 3
-#TRANSFERS = 3
-# =================modify here=================
 
 def handler(signal_received, frame):
     global PID
@@ -39,22 +31,38 @@ def handler(signal_received, frame):
     sys.exit(0)
 
 def main():
+    current_sa = -1
+    
     signal(SIGINT, handler)
 
-    # if rclone is not installed, exit
-    ret = check_rclone_program()
-    print("rclone is detected: {}".format(ret))
+    # Check if rclone is installed, if it isn't, exit
+    ret = helpers.check_rclone_exists()
+    print("rclone detected: {}".format(ret))
     args = arg_parser.parse_args()
+
+    source_path = ""
+    if args.source:
+        source_path = args.source
+    elif args.source_path:
+        source_path = args.source_path
+    else:
+        sys.exit("A source is required, please use either --source or --source_path.")
+
+    destination_path = args.destination
+    if args.destination_path:
+        destination_path += ":" + args.destination_path
 
     id = args.begin_sa_id
     end_id = args.end_sa_id
 
-    print('generating rclone config file.')
-    config_file, end_id = config_gen.gen_rclone_cfg(args)
-    print('rclone config file generated.')
+    print('Generating rclone config file...')
+    config_file_path, end_id, src_is_crypt, dst_is_crypt = config_gen.gen_rclone_cfg(args)
 
     time_start = time.time()
-    print("Start: {}".format(time.strftime("%H:%M:%S")))
+    print('\nStarting job: {}, at {}'.format(args.name, time.strftime("%H:%M:%S")))
+    print('Source: ' + source_path)
+    print('Destination: ' + destination_path)
+    print('Log Directory: ' + args.log_dir + '\n')
 
     cnt_acc_error = 0
     while id <= end_id + 1:
@@ -63,75 +71,53 @@ def main():
             break
             # id = 1
 
-        with io.open('current_sa.txt', 'w', encoding='utf-8') as fp:
-            fp.write(str(id) + '\n')
+        current_sa = id
 
         src_label = "src" + "{0:03d}".format(id) + ":"
         dst_label = "dst" + "{0:03d}".format(id) + ":"
-        if args.crypt:
+        if src_label:
+            src_label = "src" + "{0:03d}_crypt".format(id) + ":"
+        if dst_label:
             dst_label = "dst" + "{0:03d}_crypt".format(id) + ":"
 
-        if args.cache:
-            dst_label = "dst" + "{0:03d}_cache".format(id) + ":"
-
-        src_full_path = src_label + args.source_path
-        if args.source_id is None:
-            src_full_path = args.source_path
-
-        dst_full_path = dst_label + args.destination_path
-        if args.destination_id is None:
-            dst_full_path = args.destination_path
-
-        if args.test_only:
-            print('\nsrc full path\n', src_full_path)
-            print('\ndst full path\n', dst_full_path, '\n')
-
-        if args.check_path and id == args.begin_sa_id:
-            print("Please wait. Checking source path...")
-            check_path(src_full_path)
-
-            print("Please wait. Checking destination path...")
-            check_path(dst_full_path)
-
-        # =================cmd to run=================
-        rclone_cmd = "rclone --config {} copy ".format(config_file)
-        if args.dry_run:
-            rclone_cmd += "--dry-run "
-        rclone_cmd += "--drive-server-side-across-configs --rc --rc-addr=\"localhost:{}\" -vv ".format(args.port)
-        rclone_cmd += "--tpslimit {} --transfers {} --drive-chunk-size {} ".format(args.tpslimit, args.transfers, args.drive_chunk_size)
-        rclone_cmd += "--bwlimit {} ".format(args.bwlimit)
-        rclone_cmd += "--drive-acknowledge-abuse --log-file={} \"{}\" \"{}\"".format(logfile, src_full_path,
-                                                                                     dst_full_path)
+        #rclone_cmd = "rclone --config {} copy ".format(config_file)
+        #if args.dry_run:
+        #    rclone_cmd += "--dry-run "
+        #rclone_cmd += "--drive-server-side-across-configs --rc --rc-addr=\"localhost:{}\" -vv ".format(args.port)
+        #rclone_cmd += "--tpslimit {} --transfers {} --drive-chunk-size {} ".format(args.tpslimit, args.transfers, args.drive_chunk_size)
+        #rclone_cmd += "--bwlimit {} ".format(args.bwlimit)
+        #rclone_cmd += "--drive-acknowledge-abuse --log-file={} \"{}\" \"{}\"".format(logfile, src_full_path,
+        #                                                                             dst_full_path)
 
         if not helpers.is_windows():
             rclone_cmd = rclone_cmd + " &"
         else:
             rclone_cmd = "start /b " + rclone_cmd
-        # =================cmd to run=================
 
-        print(rclone_cmd)
+        # TODO implement this properly
+        #print(rclone_cmd)
 
         try:
             subprocess.check_call(rclone_cmd, shell=True)
-            print(">> Let us go {} {}".format(dst_label, time.strftime("%H:%M:%S")))
+            # TODO: Implement proper logging
+            #print(">> Let us go {} {}".format(dst_label, time.strftime("%H:%M:%S")))
             time.sleep(10)
         except subprocess.SubprocessError as error:
             return print("error: " + str(error))
+
 
         cnt_error = 0
         cnt_dead_retry = 0
         size_bytes_done_before = 0
         cnt_acc_sucess = 0
-        already_start = False
+        job_started = False
 
         try:
             response = subprocess.check_output('rclone rc --rc-addr="localhost:{}" core/pid'.format(args.port), shell=True)
             pid = json.loads(response.decode('utf-8').replace('\0', ''))['pid']
-            if args.test_only: print('\npid is: {}\n'.format(pid))
 
             global PID
             PID = int(pid)
-
         except subprocess.SubprocessError as error:
             pass
 
@@ -170,19 +156,22 @@ def main():
 
             response_processed = response.decode('utf-8').replace('\0', '')
             response_processed_json = json.loads(response_processed)
-            size_bytes_done = int(response_processed_json['bytes'])
+            bytes_transferred = int(response_processed_json['bytes'])
             checks_done = int(response_processed_json['checks'])
-            size_GB_done = int(size_bytes_done * 9.31322e-10)
-            speed_now = float(int(response_processed_json['speed']) * 9.31322e-10 * 1024)
+            # I'm using The International Engineering Community (IEC) Standard, eg. 1 GB = 1000 MB, if you think otherwise, fight me!
+            best_unit_transferred = helpers.convert_bytes_to_best_unit(bytes_transferred)
+            transfer_speed = helpers.convert_bytes_to_best_unit(bytes_transferred)
 
-            # try:
-            #     print(json.loads(response.decode('utf-8')))
-            # except:
-            #     print("have some encoding problem to print info")
+            # Reimplement this whole block
+            try:
+                print(json.loads(response.decode('utf-8')))
+            except:
+                print("have some encoding problem to print info")
             if already_start:
                 print("%s %dGB Done @ %fMB/s | checks: %d files" % (dst_label, size_GB_done, speed_now, checks_done), end="\r")
             else:
                 print("%s reading source/destination | checks: %d files" % (dst_label, checks_done), end="\r")
+            ########
 
             # continually no ...
             if size_bytes_done - size_bytes_done_before == 0:
@@ -234,7 +223,7 @@ def main():
                     # exit directly rather than switch to next account.
                     print('All Done.')
                     return
-                # =================Finish it=================
+               # =================Finish it=================
 
                 break
 

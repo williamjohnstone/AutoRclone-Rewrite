@@ -5,4 +5,12 @@ __pycache__/
 
 # macOS stuff
 .DS_STORE
+
+# Prevent credential leaks
 rclone.conf
+credentials.json
+accounts/*
+credentials/*
+token.pickle
+rclone_generated.conf
+current_sa.txt
