@@ -78,9 +78,9 @@ def gen_remote_template(src_or_dest, parsed_config, args, is_config_file_specifi
     return remote_template, remote_is_crypt
 
 
-def gen_rclone_cfg(args):
+def gen_rclone_cfg(args, filepath):
     sa_files = glob.glob(os.path.join(args.service_account_dir, '*.json'))
-    output_of_config_file = './rclone_generated.conf'
+    output_of_config_file = filepath
 
     if len(sa_files) == 0:
         sys.exit('No json files found in ./{}'.format(args.service_account))

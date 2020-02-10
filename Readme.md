@@ -30,6 +30,8 @@ NOTE: This is a work in progress, here is a todo list
 - Added original repository to readme
 - Removed some cmd line args
 - Added `--log-dir` arg
+- Added `calculate_path_size` helper function
+- Implemented amount to transfer output
 
 ### 9th February 2020
 - Removed old README content

@@ -13,6 +13,7 @@ PID = 0
 MAX_TRANSFER_GB = 735  # if one account has already copied 735GB, switch to next account
 CNT_DEAD_RETRY = 100  # if no bytes are transferred after 100 loops exit
 SA_EXIT_TRESHOLD = 3  # if continually switch account for 3 times stop script
+rclone_generated_config = "rclone_generated.conf"
 
 
 def handler(signal_received, frame):
@@ -56,13 +57,17 @@ def main():
     end_id = args.end_sa_id
 
     print('Generating rclone config file...')
-    config_file_path, end_id, src_is_crypt, dst_is_crypt = config_gen.gen_rclone_cfg(args)
+    config_file_path, end_id, src_is_crypt, dst_is_crypt = config_gen.gen_rclone_cfg(args, rclone_generated_config)
 
     time_start = time.time()
     print('\nStarting job: {}, at {}'.format(args.name, time.strftime("%H:%M:%S")))
     print('Source: ' + source_path)
-    print('Destination: ' + destination_path)
-    print('Log Directory: ' + args.log_dir + '\n')
+    print('Destination: ' + destination_path) # TODO: Add :/ if no path
+    print('Log Directory: ' + args.log_dir)
+    amount_to_transfer = helpers.convert_bytes_to_best_unit(helpers.calculate_path_size(source_path, rclone_generated_config))
+    print('Amount to Transfer: ' + amount_to_transfer)
+
+    sys.exit()
 
     cnt_acc_error = 0
     while id <= end_id + 1:

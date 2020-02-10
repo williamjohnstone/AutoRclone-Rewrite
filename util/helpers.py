@@ -34,6 +34,12 @@ def check_rclone_exists():
     return ret
 
 def convert_bytes_to_best_unit(bytes_value):
+    bytes_value = float(bytes_value)
+
+    value_tmp = bytes_value * 1e-15
+    if value_tmp >= 1:
+        return str(round(value_tmp, 1)) + "PB"
+
     value_tmp = bytes_value * 1e-12
     if value_tmp >= 1:
         return str(round(value_tmp, 1)) + "TB"
@@ -48,7 +54,15 @@ def convert_bytes_to_best_unit(bytes_value):
 
     value_tmp = bytes_value * 1e-3
     if value_tmp >= 1:
-        return str(round(value_tmp, 1)) + "KB"
+        return str(round(value_tmp, 1)) + "kB"
 
     return str(bytes_value) + "B"
 
+# Calculate path size in bytes using rclone
+def calculate_path_size(path, config_file):
+    response = subprocess.check_output('rclone --config {} size \"{}\"'.format(config_file, path), shell=True, stderr=subprocess.DEVNULL)
+    response_processed = response.decode('utf-8').replace('\0', '')
+    response_bytes = response_processed.split('(')[1]
+    response_bytes = response_bytes.replace('Bytes)', '').strip()
+
+    return response_bytes
