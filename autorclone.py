@@ -6,117 +6,178 @@ import time
 from signal import signal, SIGINT
 from util import arg_parser, config_gen, helpers
 
-logfile = "rclone_output.log"  # log file: tail -f log_rclone.txt
 PID = 0
 
-# parameters for this script
-MAX_TRANSFER_GB = 735  # if one account has already copied 735GB, switch to next account
-CNT_DEAD_RETRY = 100  # if no bytes are transferred after 100 loops exit
-SA_EXIT_TRESHOLD = 3  # if continually switch account for 3 times stop script
-rclone_generated_config = "rclone_generated.conf"
+# Parameters for script
+MAX_TRANSFER_BYTES = (735 * 1e9) # If one account has already copied 735GB (735 * 1e9), switch to next account
+TRANSFER_DEAD_THRESHOLD = 100  # If no bytes are transferred after 100 loops, exit
+SA_EXIT_TRESHOLD = 3  # If SAs are switched 3 successive times with no transfers, exit
 
-
-def handler(signal_received, frame):
+# Exit handler to that kills the RClone process if the script is terminated
+def exit_handler(signal_received, frame):
     global PID
 
     if helpers.is_windows():
+        # Windows kill command
         kill_cmd = 'taskkill /PID {} /F'.format(PID)
     else:
-        kill_cmd = "kill -9 {}".format(PID)
+        # Every other normal exit command
+        kill_cmd = 'kill -9 {}'.format(PID)
 
     try:
-        print("\n" + " " * 20 + " {}".format(time.strftime("%H:%M:%S")))
+        # Run the command
         subprocess.check_call(kill_cmd, shell=True)
     except:
+        # Ignore errors
         pass
+    # Exit the script
     sys.exit(0)
 
+# Main function, everything is executed from here
 def main():
     current_sa = -1
     
-    signal(SIGINT, handler)
+    # Sets the scripts SIGINT handler to our exit_handler
+    signal(SIGINT, exit_handler)
 
-    # Check if rclone is installed, if it isn't, exit
+    # Check if RClone is installed, if it isn't, exit
     ret = helpers.check_rclone_exists()
-    print("rclone detected: {}".format(ret))
+
+    # Parse args
     args = arg_parser.parse_args()
 
-    source_path = ""
+    # Log that rclone was detected
+    helpers.log('RClone detected: {}'.format(ret), 'INFO', args)
+
+    # Generate config
+    rclone_generated_config_path = args.generated_config_path
+
+    source_path = ''
+
+    # Use either source remote or source path, if neither exist exit
     if args.source:
         source_path = args.source
     elif args.source_path:
         source_path = args.source_path
     else:
-        sys.exit("A source is required, please use either --source or --source_path.")
+        helpers.log('A source is required, please use either --source or --source_path.', 'ERROR', args)
+        sys.exit(-1)
 
-    destination_path = args.destination
-    if args.destination_path:
+    # If both a remote and a path exist combine them using RClone syntax
+    if args.source and args.source_path:
+        source_path += ":" + args.source_path
+
+    # See comments above
+    destination_path = ''
+    if args.destination:
+        destination_path = args.destination
+    elif args.destination_path:
+        destination_path = args.destination_path
+    else:
+        helpers.log('A destination is required, please use either --destination or --destination_path.', 'ERROR', args)
+        sys.exit(-1)
+
+    if args.destination and args.destination_path:
         destination_path += ":" + args.destination_path
 
-    id = args.begin_sa_id
-    end_id = args.end_sa_id
+    # Set id initially to the starting SA id
+    id = args.sa_start_id
+    end_id = args.sa_end_id
 
-    print('Generating rclone config file...')
-    config_file_path, end_id, src_is_crypt, dst_is_crypt = config_gen.gen_rclone_cfg(args, rclone_generated_config)
+    helpers.log('Generating RClone config file...', 'INFO', args)
+    # Generate RClone config file
+    end_id, src_is_crypt, dst_is_crypt = config_gen.gen_rclone_cfg(args, rclone_generated_config_path)
 
     time_start = time.time()
-    print('\nStarting job: {}, at {}'.format(args.name, time.strftime("%H:%M:%S")))
-    print('Source: ' + source_path)
-    print('Destination: ' + destination_path) # TODO: Add :/ if no path
-    print('Log Directory: ' + args.log_dir)
-    amount_to_transfer = helpers.convert_bytes_to_best_unit(helpers.calculate_path_size(source_path, rclone_generated_config))
-    print('Amount to Transfer: ' + amount_to_transfer)
+    helpers.log('\nStarting job: {}, at {}'.format(args.name, time.strftime('%H:%M:%S')), 'INFO', args)
+    helpers.log('Source: ' + source_path, 'INFO', args)
+    helpers.log('Destination: ' + destination_path, 'INFO', args)
+    helpers.log('AutoRClone Log: ' + args.log_file, 'INFO', args)
+    helpers.log('RClone Log: ' + args.rclone_log_file, 'INFO', args)
 
-    sys.exit()
-
-    cnt_acc_error = 0
+    # Initialise exit counter outside of loop so it keeps it's value
+    exit_counter = 0
+    error_counter = 0
     while id <= end_id + 1:
 
         if id == end_id + 1:
             break
-            # id = 1
+        
+        # TODO fix these for local paths
+        # Construct destination and source labels
+        src_label = 'src' + '{0:03d}'.format(id) + ':'
+        dst_label = 'dst' + '{0:03d}'.format(id) + ':'
+        if src_is_crypt:
+            src_label = 'src' + '{0:03d}_crypt'.format(id) + ':'
+        if dst_is_crypt:
+            dst_label = 'dst' + '{0:03d}_crypt'.format(id) + ':'
+        
+        # Fix for local paths that do not use a remote
+        if not args.source and args.source_path:
+            src_label = args.source_path
+        if not args.destination and args.destination_path:
+            dst_label = args.destination_path
 
-        current_sa = id
+        if id == args.sa_start_id:
+            amount_to_transfer_bytes = helpers.calculate_path_size(src_label, rclone_generated_config_path)
+            amount_to_transfer = helpers.convert_bytes_to_best_unit(amount_to_transfer_bytes)
+            helpers.log('Amount to Transfer: ' + amount_to_transfer + '\n', 'INFO', args)
 
-        src_label = "src" + "{0:03d}".format(id) + ":"
-        dst_label = "dst" + "{0:03d}".format(id) + ":"
-        if src_label:
-            src_label = "src" + "{0:03d}_crypt".format(id) + ":"
-        if dst_label:
-            dst_label = "dst" + "{0:03d}_crypt".format(id) + ":"
+        # Construct RClone command
+        rclone_cmd = 'rclone --config {} '.format(rclone_generated_config_path)
+        if args.copy:
+            rclone_cmd += 'copy '
+        elif args.move:
+            rclone_cmd += 'move '
+        elif args.sync:
+            rclone_cmd += 'sync '
+        else:
+            helpers.log('Please specify an operation (--copy, --move or --sync)', 'ERROR', args)
+            sys.exit()
 
-        #rclone_cmd = "rclone --config {} copy ".format(config_file)
-        #if args.dry_run:
-        #    rclone_cmd += "--dry-run "
-        #rclone_cmd += "--drive-server-side-across-configs --rc --rc-addr=\"localhost:{}\" -vv ".format(args.port)
-        #rclone_cmd += "--tpslimit {} --transfers {} --drive-chunk-size {} ".format(args.tpslimit, args.transfers, args.drive_chunk_size)
-        #rclone_cmd += "--bwlimit {} ".format(args.bwlimit)
-        #rclone_cmd += "--drive-acknowledge-abuse --log-file={} \"{}\" \"{}\"".format(logfile, src_full_path,
-        #                                                                             dst_full_path)
+        rclone_cmd += '--drive-server-side-across-configs --drive-acknowledge-abuse --rc '
+        rclone_cmd += '--rc-addr=\"localhost:{}\" --tpslimit {} --transfers {} --drive-chunk-size {} --bwlimit {} --log-file {} '.format(
+            args.port, args.tpslimit, args.transfers, args.drive_chunk_size, args.bwlimit, args.rclone_log_file)
+        if args.dry_run:
+            rclone_cmd += '--dry-run '
+        if args.v:
+            rclone_cmd += '-v '
+        if args.vv:
+            rclone_cmd += '-vv '
+        if args.delete_empty_src_dirs:
+            rclone_cmd += '--delete-empty-src-dirs '
+        if args.create_empty_src_dirs:
+            rclone_cmd += '--create-empty-src-dirs '
 
+        # Add source and destination
+        rclone_cmd += '\"{}\" \"{}\"'.format(src_label, dst_label)
+
+        # If we're not on windows append ' &' otherwise append 'start /b ' to the start of rclone_cmd
         if not helpers.is_windows():
             rclone_cmd = rclone_cmd + " &"
         else:
             rclone_cmd = "start /b " + rclone_cmd
 
-        # TODO implement this properly
-        #print(rclone_cmd)
-
         try:
             subprocess.check_call(rclone_cmd, shell=True)
-            # TODO: Implement proper logging
-            #print(">> Let us go {} {}".format(dst_label, time.strftime("%H:%M:%S")))
+            helpers.log('Executing RClone command: {}'.format(rclone_cmd), 'INFO', args)
             time.sleep(10)
         except subprocess.SubprocessError as error:
-            return print("error: " + str(error))
+            helpers.log('Error executing RClone command: {}'.format(error), 'ERROR', args)
+            sys.exit(-1)
 
+        # Counter for errors encountered when attempting to get RClone rc stats (per sa)
+        sa_error_counter = 0
+        # Counter that's incremented when no bytes are transferred over a time period
+        dead_transfer_counter = 0
+        # Updated on each loop
+        last_bytes_transferred = 0
+        # Counter for amount of successful stat retrievals from RClone rc (per sa)
+        sa_success_counter = 0
 
-        cnt_error = 0
-        cnt_dead_retry = 0
-        size_bytes_done_before = 0
-        cnt_acc_sucess = 0
         job_started = False
 
+        # Get RClone PID and store it
         try:
             response = subprocess.check_output('rclone rc --rc-addr="localhost:{}" core/pid'.format(args.port), shell=True)
             pid = json.loads(response.decode('utf-8').replace('\0', ''))['pid']
@@ -124,38 +185,33 @@ def main():
             global PID
             PID = int(pid)
         except subprocess.SubprocessError as error:
-            pass
+            helpers.log('Error executing RClone command: {}'.format(error), 'ERROR', args)
+            sys.exit(0)
 
+        # Loop infinitely until loop is broken out of
         while True:
-            rc_cmd = 'rclone rc --rc-addr="localhost:{}" core/stats'.format(format(args.port))
+            # RClone rc stats command
+            rc_cmd = 'rclone rc --rc-addr="localhost:{}" core/stats'.format(args.port)
             try:
+                # Run command and store response
                 response = subprocess.check_output(rc_cmd, shell=True)
-                cnt_acc_sucess += 1
-                cnt_error = 0
-                # if there is a long time waiting, this will be easily satisfied, so check if it is started using
-                # already_started flag
-                if already_start and cnt_acc_sucess >= 9:
-                    cnt_acc_error = 0
-                    cnt_acc_sucess = 0
-                    if args.test_only: print(
-                        "total 9 times success. the cnt_acc_error is reset to {}\n".format(cnt_acc_error))
+                # Increment success counter
+                sa_success_counter += 1
+                # Reset error counter
+                sa_error_counter = 0
+
+                if job_started and sa_success_counter >= 9:
+                    sa_error_counter = 0
+                    sa_success_counter = 0
 
             except subprocess.SubprocessError as error:
-                # continually ...
-                cnt_error = cnt_error + 1
-                cnt_acc_error = cnt_acc_error + 1
-                if cnt_error >= 3:
-                    cnt_acc_sucess = 0
-                    if args.test_only: print(
-                        "total 3 times failure. the cnt_acc_sucess is reset to {}\n".format(cnt_acc_sucess))
-
-                    print('No rclone task detected (possibly done for this '
-                          'account). ({}/3)'.format(int(cnt_acc_error / cnt_error)))
-                    # Regard continually exit as *all done*.
-                    if cnt_acc_error >= 9:
-                        print('All done (3/3).')
-                        print_during(time_start)
-                        return
+                sa_error_counter += 1
+                error_counter = error_counter + 1
+                if sa_error_counter >= 3:
+                    sa_success_counter = 0
+                    if error_counter >= 9:
+                        finish_job(args, time_start)
+                        sys.exit(0)
                     break
                 continue
 
@@ -163,79 +219,68 @@ def main():
             response_processed_json = json.loads(response_processed)
             bytes_transferred = int(response_processed_json['bytes'])
             checks_done = int(response_processed_json['checks'])
+            transfer_speed_bytes = int(response_processed_json['speed'])
             # I'm using The International Engineering Community (IEC) Standard, eg. 1 GB = 1000 MB, if you think otherwise, fight me!
             best_unit_transferred = helpers.convert_bytes_to_best_unit(bytes_transferred)
-            transfer_speed = helpers.convert_bytes_to_best_unit(bytes_transferred)
+            transfer_speed = helpers.convert_bytes_to_best_unit(transfer_speed_bytes)
+            
+            bytes_left_to_transfer = int(amount_to_transfer_bytes) - bytes_transferred
+            # TODO round eta
+            eta = helpers.calculate_transfer_eta(bytes_left_to_transfer, transfer_speed_bytes)
 
-            # Reimplement this whole block
-            try:
-                print(json.loads(response.decode('utf-8')))
-            except:
-                print("have some encoding problem to print info")
-            if already_start:
-                print("%s %dGB Done @ %fMB/s | checks: %d files" % (dst_label, size_GB_done, speed_now, checks_done), end="\r")
-            else:
-                print("%s reading source/destination | checks: %d files" % (dst_label, checks_done), end="\r")
+            #TODO: Reimplement this whole block
+            #if job_started:
+            #    print("%s %dGB Done @ %fMB/s | checks: %d files" % (dst_label, size_GB_done, speed_now, checks_done), end="\r")
+            #else:
+            #    print("%s reading source/destination | checks: %d files" % (dst_label, checks_done), end="\r")
             ########
+            helpers.log('{}/{} @ {}/s SA: {} ETA: {}\r'.format(best_unit_transferred, amount_to_transfer, transfer_speed, id, eta), "INFO", args)
 
             # continually no ...
-            if size_bytes_done - size_bytes_done_before == 0:
-                if already_start:
-                    cnt_dead_retry += 1
-                    if args.test_only:
-                        print('\nsize_bytes_done', size_bytes_done)
-                        print('size_bytes_done_before', size_bytes_done_before)
-                        print("No. No size increase after job started.")
+            if bytes_transferred - last_bytes_transferred == 0:
+                if job_started:
+                    dead_transfer_counter += 1
             else:
-                cnt_dead_retry = 0
-                if args.test_only: print("\nOk. I think the job has started")
-                already_start = True
+                dead_transfer_counter = 0
+                job_started = True
 
-            size_bytes_done_before = size_bytes_done
+            last_bytes_transferred = bytes_transferred
 
             # Stop by error (403, etc) info
-            if size_GB_done >= SIZE_GB_MAX or cnt_dead_retry >= CNT_DEAD_RETRY:
-
+            if bytes_transferred >= MAX_TRANSFER_BYTES or dead_transfer_counter >= TRANSFER_DEAD_THRESHOLD:
                 if helpers.is_windows():
-                    # kill_cmd = 'taskkill /IM "rclone.exe" /F'
                     kill_cmd = 'taskkill /PID {} /F'.format(PID)
                 else:
                     kill_cmd = "kill -9 {}".format(PID)
-                print("\n" + " " * 20 + " {}".format(time.strftime("%H:%M:%S")))
                 try:
                     subprocess.check_call(kill_cmd, shell=True)
-                    print('\n')
+                    helpers.log('Transfer limit reached or rclone is inactive, switching service accounts', 'INFO', args)
                 except:
-                    if args.test_only: print("\nFailed to kill.")
                     pass
 
-                # =================Finish it=================
-                if cnt_dead_retry >= CNT_DEAD_RETRY:
+                if dead_transfer_counter >= TRANSFER_DEAD_THRESHOLD:
                     try:
-                        cnt_exit += 1
+                        exit_counter += 1
                     except:
-                        cnt_exit = 1
-                    if args.test_only: print(
-                        "1 more time for long time waiting. the cnt_exit is added to {}\n".format(cnt_exit))
+                        exit_counter = 1
                 else:
                     # clear cnt if there is one time
-                    cnt_exit = 0
-                    if args.test_only: print("1 time sucess. the cnt_exit is reset to {}\n".format(cnt_exit))
+                    exit_counter = 0
 
                 # Regard continually exit as *all done*.
-                if cnt_exit >= CNT_SA_EXIT:
-                    print_during(time_start)
-                    # exit directly rather than switch to next account.
-                    print('All Done.')
-                    return
-               # =================Finish it=================
+                if exit_counter >= SA_EXIT_TRESHOLD:
+                    # Exit directly rather than switch to next account.
+                    finish_job(args, time_start)
+                    sys.exit(0)
 
                 break
 
             time.sleep(2)
         id = id + 1
 
-    print_during(time_start)
+# TODO implement
+def finish_job(args, time_start):
+    helpers.log('Job FINISHED (this message will be better soon)', 'INFO', args)
 
 
 if __name__ == "__main__":

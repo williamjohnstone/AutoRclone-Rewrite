@@ -12,5 +12,6 @@ credentials.json
 accounts/*
 credentials/*
 token.pickle
-rclone_generated.conf
+rclone-generated.conf
 current_sa.txt
+logs/*
