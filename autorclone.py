@@ -126,9 +126,9 @@ def main():
                 dst_label += args.destination_path
 
         if id == args.sa_start_id:
-            source_size_bytes = helpers.calculate_path_size(src_label, rclone_generated_config_path)
-            source_size = helpers.convert_bytes_to_best_unit(source_size_bytes)
-            helpers.log('Source size: ' + source_size + '\n', 'INFO', args)
+            amount_to_transfer_bytes = helpers.calculate_path_size(src_label, rclone_generated_config_path)
+            amount_to_transfer = helpers.convert_bytes_to_best_unit(amount_to_transfer_bytes)
+            helpers.log('Source size: ' + amount_to_transfer + '\n', 'INFO', args)
 
         # Construct RClone command
         rclone_cmd = 'rclone --config {} '.format(rclone_generated_config_path)
@@ -181,9 +181,6 @@ def main():
         last_bytes_transferred = 0
         # Counter for amount of successful stat retrievals from RClone rc (per sa)
         sa_success_counter = 0
-        # Parralel arrays to hold hashed filenames and filesizes for calculating transfer amount
-        file_sizes = []
-        file_names = []
 
         job_started = False
 
@@ -234,21 +231,21 @@ def main():
             best_unit_transferred = helpers.convert_bytes_to_best_unit(bytes_transferred)
             transfer_speed = helpers.convert_bytes_to_best_unit(transfer_speed_bytes)
             
-            transfers = response_processed_json['transferring']
-            for file in transfers:
-                name = file['name']
-                name_hashed = hashlib.sha1(bytes(name, encoding='utf8')).hexdigest()
-                size_bytes = file['size']
-                helpers.log('File: {} ({}) is {} bytes'.format(name, name_hashed, size_bytes), 'DEBUG', args)
-                if not name_hashed in file_names:
-                    file_names.append(name_hashed)
-                    file_sizes.append(size_bytes)
+            #transfers = response_processed_json['transferring']
+            #for file in transfers:
+            #    name = file['name']
+            #    name_hashed = hashlib.sha1(bytes(name, encoding='utf8')).hexdigest()
+            #    size_bytes = file['size']
+            #    helpers.log('File: {} ({}) is {} bytes'.format(name, name_hashed, size_bytes), 'DEBUG', args)
+            #    if not name_hashed in file_names:
+            #        file_names.append(name_hashed)
+            #        file_sizes.append(size_bytes)
 
-            helpers.log("file_names = " + str(file_names), 'DEBUG', args)
-            helpers.log("file_sizes = " + str(file_sizes), 'DEBUG', args)
+            #helpers.log("file_names = " + str(file_names), 'DEBUG', args)
+            #helpers.log("file_sizes = " + str(file_sizes), 'DEBUG', args)
 
-            amount_to_transfer_bytes = sum(file_sizes)
-            amount_to_transfer = helpers.convert_bytes_to_best_unit(amount_to_transfer_bytes)
+            #amount_to_transfer_bytes = sum(file_sizes)
+            #amount_to_transfer = helpers.convert_bytes_to_best_unit(amount_to_transfer_bytes)
             bytes_left_to_transfer = int(amount_to_transfer_bytes) - bytes_transferred
             eta = helpers.calculate_transfer_eta(bytes_left_to_transfer, transfer_speed_bytes)
 
@@ -273,6 +270,8 @@ def main():
                 try:
                     subprocess.check_call(kill_cmd, shell=True)
                     helpers.log('Transfer limit reached or RClone is inactive, switching service accounts', 'INFO', args)
+                    amount_to_transfer_bytes -= bytes_transferred
+                    amount_to_transfer = helpers.convert_bytes_to_best_unit(amount_to_transfer_bytes)
                     global_bytes_transferred += bytes_transferred
                 except:
                     pass

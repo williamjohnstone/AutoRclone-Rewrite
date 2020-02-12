@@ -21,7 +21,7 @@ NOTE: This is a work in progress, here is a todo list
 - [x] Replace `sys.exit()` calls with messages with proper logging
 - [x] Implement my own transfer speed calculator as the speeds RClone is reporting seem to be off
 - [x] Retain amount transferred between SAs
-- [ ] Use RClone rc to calculate transfer amount instead of size of source 
+- [ ] Use RClone rc to calculate transfer amount instead of size of source
 
 *Instructions will be written once the rewrite is complete.*
 
@@ -32,6 +32,7 @@ NOTE: This is a work in progress, here is a todo list
 - Removed decimal place in eta
 - Made sure source and destination paths are actually used
 - Reverted `Changed output to 2 decimals in helpers.convert_bytes_to_best_unit()`
+- Better transfer size checks (still not perfect as doesn't account for files that are already on the destination) 
 
 ### 11th February 2020
 - Changed output to 2 decimals in `helpers.convert_bytes_to_best_unit()`
