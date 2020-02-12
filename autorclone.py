@@ -166,7 +166,7 @@ def main():
 
         try:
             subprocess.check_call(rclone_cmd, shell=True)
-            helpers.log('Executing RClone command: {}'.format(rclone_cmd), 'INFO', args)
+            helpers.log('Executing RClone command: {}'.format(rclone_cmd), 'DEBUG', args)
             time.sleep(10)
         except subprocess.SubprocessError as error:
             helpers.log('Error executing RClone command: {}'.format(error), 'ERROR', args)
@@ -217,7 +217,7 @@ def main():
                     if error_counter >= 9:
                         finish_job(args, time_start)
                         sys.exit(0)
-                    helpers.log('Encountered 3 successive errors when trying to retrieve stats, switching accounts', 'INFO', args)
+                    helpers.log('Encountered 3 successive errors when trying to retrieve stats, switching accounts ({}/3)'.format(error_counter/sa_error_counter), 'INFO', args)
                     break
                 continue
 

@@ -83,7 +83,7 @@ def log(msg, level, args, end=None):
 
 def calculate_transfer_eta(bytes_to_transfer, transfer_speed_bytes):
     if bytes_to_transfer == 0 or transfer_speed_bytes == 0:
-        return "Caclulating ETA..."
+        return "Calculating ETA..."
     
     # time in seconds
     time = bytes_to_transfer / transfer_speed_bytes

@@ -36,6 +36,9 @@ NOTE: This is a work in progress, here is a todo list
 - Made sure arg parser uses utf8 encoding
 - Stopped error after pid fails to retrieve (this could mean transfers are done)
 - Added message to notify account switching when error count reaches 3
+- Fixed typo `Caclulating -> Calculating`
+- Changed rclone command logging to debug log
+- Added number to 3 successive error message
 
 ### 11th February 2020
 - Changed output to 2 decimals in `helpers.convert_bytes_to_best_unit()`
