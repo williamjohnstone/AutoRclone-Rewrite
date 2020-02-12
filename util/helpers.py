@@ -32,23 +32,23 @@ def convert_bytes_to_best_unit(bytes_value):
 
     value_tmp = bytes_value * 1e-15
     if value_tmp >= 1:
-        return str(round(value_tmp, 2)) + "PB"
+        return str(round(value_tmp, 1)) + "PB"
 
     value_tmp = bytes_value * 1e-12
     if value_tmp >= 1:
-        return str(round(value_tmp, 2)) + "TB"
+        return str(round(value_tmp, 1)) + "TB"
 
     value_tmp = bytes_value * 1e-9
     if value_tmp >= 1:
-        return str(round(value_tmp, 2)) + "GB"
+        return str(round(value_tmp, 1)) + "GB"
 
     value_tmp = bytes_value * 1e-6
     if value_tmp >= 1:
-        return str(round(value_tmp, 2)) + "MB"
+        return str(round(value_tmp, 1)) + "MB"
 
     value_tmp = bytes_value * 1e-3
     if value_tmp >= 1:
-        return str(round(value_tmp, 2)) + "kB"
+        return str(round(value_tmp, 1)) + "kB"
 
     return str(bytes_value) + "B"
 
@@ -62,14 +62,17 @@ def calculate_path_size(path, config_file):
     return response_bytes
 
 
-def log(msg, level, args):
+def log(msg, level, args, end=None):
     if level == "DEBUG" and not args.debug:
         return
     
     ts = time.gmtime()
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S", ts)
     message = '[{}] [AutoRClone] ({}) [{}] {}\n'.format(timestamp, args.name, level, msg)
-    print(message.replace('\n', ''))
+    if end:
+        print(message.replace('\n', ''), end=end)
+    else:
+        print(message.replace('\n', ''))
     # File logging
     file_path = args.log_file
     Path(os.path.split(file_path)[0]).mkdir(parents=True, exist_ok=True)
@@ -79,16 +82,19 @@ def log(msg, level, args):
 
 
 def calculate_transfer_eta(bytes_to_transfer, transfer_speed_bytes):
+    if bytes_to_transfer == 0 or transfer_speed_bytes == 0:
+        return "Caclulating ETA..."
+    
     # time in seconds
     time = bytes_to_transfer / transfer_speed_bytes
     hours, rem = divmod((time), 3600)
     minutes, sec = divmod(rem, 60)
     eta_string = ""
     if hours > 1:
-        eta_string += '{}h, '.format(hours)
+        eta_string += '{}h, '.format(int(hours))
     if minutes > 1:
-        eta_string += '{}m, '.format(minutes)
+        eta_string += '{}m, '.format(int(minutes))
     if sec > 1:
-        eta_string += '{}s'.format(sec)
+        eta_string += '{}s'.format(int(sec))
 
     return eta_string

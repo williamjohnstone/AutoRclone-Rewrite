@@ -5,12 +5,13 @@ import sys
 import time
 from signal import signal, SIGINT
 from util import arg_parser, config_gen, helpers
+import hashlib
 
 PID = 0
 
 # Parameters for script
-MAX_TRANSFER_BYTES = (735 * 1e9) # If one account has already copied 735GB (735 * 1e9), switch to next account
-TRANSFER_DEAD_THRESHOLD = 100  # If no bytes are transferred after 100 loops, exit
+MAX_TRANSFER_BYTES = (740 * 1e9) # If one account has already copied 740GB (740 * 1e9), switch to next account
+TRANSFER_DEAD_THRESHOLD = 60  # If no bytes are transferred after 60 loops (120 seconds), exit
 SA_EXIT_TRESHOLD = 3  # If SAs are switched 3 successive times with no transfers, exit
 
 # Exit handler to that kills the RClone process if the script is terminated
@@ -35,8 +36,6 @@ def exit_handler(signal_received, frame):
 
 # Main function, everything is executed from here
 def main():
-    current_sa = -1
-    
     # Sets the scripts SIGINT handler to our exit_handler
     signal(SIGINT, exit_handler)
 
@@ -89,15 +88,17 @@ def main():
     end_id, src_is_crypt, dst_is_crypt = config_gen.gen_rclone_cfg(args, rclone_generated_config_path)
 
     time_start = time.time()
-    helpers.log('\nStarting job: {}, at {}'.format(args.name, time.strftime('%H:%M:%S')), 'INFO', args)
+    helpers.log('Starting job: {}, at {}'.format(args.name, time.strftime('%H:%M:%S')), 'INFO', args)
     helpers.log('Source: ' + source_path, 'INFO', args)
     helpers.log('Destination: ' + destination_path, 'INFO', args)
     helpers.log('AutoRClone Log: ' + args.log_file, 'INFO', args)
     helpers.log('RClone Log: ' + args.rclone_log_file, 'INFO', args)
+    helpers.log('Calculating source size, please wait', 'INFO', args)
 
     # Initialise exit counter outside of loop so it keeps it's value
     exit_counter = 0
     error_counter = 0
+    global_bytes_transferred = 0
     while id <= end_id + 1:
 
         if id == end_id + 1:
@@ -113,15 +114,21 @@ def main():
             dst_label = 'dst' + '{0:03d}_crypt'.format(id) + ':'
         
         # Fix for local paths that do not use a remote
-        if not args.source and args.source_path:
-            src_label = args.source_path
-        if not args.destination and args.destination_path:
-            dst_label = args.destination_path
+        if args.source_path:
+            if not args.source:
+                src_label = args.source_path
+            else:
+                src_label += args.source_path
+        if args.destination_path:
+            if not args.destination:
+                dst_label = args.destination_path
+            else:
+                dst_label += args.destination_path
 
         if id == args.sa_start_id:
-            amount_to_transfer_bytes = helpers.calculate_path_size(src_label, rclone_generated_config_path)
-            amount_to_transfer = helpers.convert_bytes_to_best_unit(amount_to_transfer_bytes)
-            helpers.log('Amount to Transfer: ' + amount_to_transfer + '\n', 'INFO', args)
+            source_size_bytes = helpers.calculate_path_size(src_label, rclone_generated_config_path)
+            source_size = helpers.convert_bytes_to_best_unit(source_size_bytes)
+            helpers.log('Source size: ' + source_size + '\n', 'INFO', args)
 
         # Construct RClone command
         rclone_cmd = 'rclone --config {} '.format(rclone_generated_config_path)
@@ -135,7 +142,7 @@ def main():
             helpers.log('Please specify an operation (--copy, --move or --sync)', 'ERROR', args)
             sys.exit()
 
-        rclone_cmd += '--drive-server-side-across-configs --drive-acknowledge-abuse --rc '
+        rclone_cmd += '--drive-server-side-across-configs --drive-acknowledge-abuse --ignore-existing --rc '
         rclone_cmd += '--rc-addr=\"localhost:{}\" --tpslimit {} --transfers {} --drive-chunk-size {} --bwlimit {} --log-file {} '.format(
             args.port, args.tpslimit, args.transfers, args.drive_chunk_size, args.bwlimit, args.rclone_log_file)
         if args.dry_run:
@@ -174,6 +181,9 @@ def main():
         last_bytes_transferred = 0
         # Counter for amount of successful stat retrievals from RClone rc (per sa)
         sa_success_counter = 0
+        # Parralel arrays to hold hashed filenames and filesizes for calculating transfer amount
+        file_sizes = []
+        file_names = []
 
         job_started = False
 
@@ -194,7 +204,7 @@ def main():
             rc_cmd = 'rclone rc --rc-addr="localhost:{}" core/stats'.format(args.port)
             try:
                 # Run command and store response
-                response = subprocess.check_output(rc_cmd, shell=True)
+                response = subprocess.check_output(rc_cmd, shell=True, stderr=subprocess.DEVNULL)
                 # Increment success counter
                 sa_success_counter += 1
                 # Reset error counter
@@ -219,27 +229,35 @@ def main():
             response_processed_json = json.loads(response_processed)
             bytes_transferred = int(response_processed_json['bytes'])
             checks_done = int(response_processed_json['checks'])
-            transfer_speed_bytes = int(response_processed_json['speed'])
+            transfer_speed_bytes = (bytes_transferred - last_bytes_transferred) / 4
             # I'm using The International Engineering Community (IEC) Standard, eg. 1 GB = 1000 MB, if you think otherwise, fight me!
             best_unit_transferred = helpers.convert_bytes_to_best_unit(bytes_transferred)
             transfer_speed = helpers.convert_bytes_to_best_unit(transfer_speed_bytes)
             
+            transfers = response_processed_json['transferring']
+            for file in transfers:
+                name = file['name']
+                name_hashed = hashlib.sha1(bytes(name, encoding='utf8')).hexdigest()
+                size_bytes = file['size']
+                helpers.log('File: {} ({}) is {} bytes'.format(name, name_hashed, size_bytes), 'DEBUG', args)
+                if not name_hashed in file_names:
+                    file_names.append(name_hashed)
+                    file_sizes.append(size_bytes)
+
+            helpers.log("file_names = " + str(file_names), 'DEBUG', args)
+            helpers.log("file_sizes = " + str(file_sizes), 'DEBUG', args)
+
+            amount_to_transfer_bytes = sum(file_sizes)
+            amount_to_transfer = helpers.convert_bytes_to_best_unit(amount_to_transfer_bytes)
             bytes_left_to_transfer = int(amount_to_transfer_bytes) - bytes_transferred
-            # TODO round eta
             eta = helpers.calculate_transfer_eta(bytes_left_to_transfer, transfer_speed_bytes)
 
-            #TODO: Reimplement this whole block
-            #if job_started:
-            #    print("%s %dGB Done @ %fMB/s | checks: %d files" % (dst_label, size_GB_done, speed_now, checks_done), end="\r")
-            #else:
-            #    print("%s reading source/destination | checks: %d files" % (dst_label, checks_done), end="\r")
-            ########
-            helpers.log('{}/{} @ {}/s SA: {} ETA: {}\r'.format(best_unit_transferred, amount_to_transfer, transfer_speed, id, eta), "INFO", args)
+            helpers.log('{}/{} @ {}/s Files Checked: {} SA: {} ETA: {}'.format(best_unit_transferred, amount_to_transfer, transfer_speed, checks_done, id, eta), "INFO", args, end='\r')
 
             # continually no ...
             if bytes_transferred - last_bytes_transferred == 0:
-                if job_started:
-                    dead_transfer_counter += 1
+                dead_transfer_counter += 1
+                helpers.log('No bytes transferred, RClone may be dead ({}/{})'.format(dead_transfer_counter, TRANSFER_DEAD_THRESHOLD), 'DEBUG', args)
             else:
                 dead_transfer_counter = 0
                 job_started = True
@@ -254,7 +272,8 @@ def main():
                     kill_cmd = "kill -9 {}".format(PID)
                 try:
                     subprocess.check_call(kill_cmd, shell=True)
-                    helpers.log('Transfer limit reached or rclone is inactive, switching service accounts', 'INFO', args)
+                    helpers.log('Transfer limit reached or RClone is inactive, switching service accounts', 'INFO', args)
+                    global_bytes_transferred += bytes_transferred
                 except:
                     pass
 
@@ -275,7 +294,7 @@ def main():
 
                 break
 
-            time.sleep(2)
+            time.sleep(4)
         id = id + 1
 
 # TODO implement

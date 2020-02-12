@@ -9,7 +9,7 @@ NOTE: This is a work in progress, here is a todo list
 - [x] Add command line args to choose between copy, move or sync
 - [x] Add bandwidth Limiting 
 - [x] Implement proper support for encrypted sources and destinations
-- [ ] Remove rc connect failed output messages to reduce confusion
+- [x] Remove rc connect failed output messages to reduce confusion
 - [x] Add more command line args to set RClone args
 - [x] Make RClone command much less hardcoded
 - [x] Allow reading remotes from external RClone config
@@ -19,10 +19,19 @@ NOTE: This is a work in progress, here is a todo list
 - [ ] Add debug logging
 - [x] Replace all prints with new logger
 - [x] Replace `sys.exit()` calls with messages with proper logging
+- [x] Implement my own transfer speed calculator as the speeds RClone is reporting seem to be off
+- [x] Retain amount transferred between SAs
+- [ ] Use RClone rc to calculate transfer amount instead of size of source 
 
 *Instructions will be written once the rewrite is complete.*
 
 ## Changelog
+
+### 12th February 2020
+- Fixed divide by 0 bug in `helpers.calculate_transfer_eta()`
+- Removed decimal place in eta
+- Made sure source and destination paths are actually used
+- Reverted `Changed output to 2 decimals in helpers.convert_bytes_to_best_unit()`
 
 ### 11th February 2020
 - Changed output to 2 decimals in `helpers.convert_bytes_to_best_unit()`
