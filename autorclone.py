@@ -104,7 +104,6 @@ def main():
         if id == end_id + 1:
             break
         
-        # TODO fix these for local paths
         # Construct destination and source labels
         src_label = 'src' + '{0:03d}'.format(id) + ':'
         dst_label = 'dst' + '{0:03d}'.format(id) + ':'
@@ -186,14 +185,13 @@ def main():
 
         # Get RClone PID and store it
         try:
-            response = subprocess.check_output('rclone rc --rc-addr="localhost:{}" core/pid'.format(args.port), shell=True)
+            response = subprocess.check_output('rclone rc --rc-addr="localhost:{}" core/pid'.format(args.port), shell=True, stderr=subprocess.DEVNULL)
             pid = json.loads(response.decode('utf-8').replace('\0', ''))['pid']
 
             global PID
             PID = int(pid)
         except subprocess.SubprocessError as error:
-            helpers.log('Error executing RClone command: {}'.format(error), 'ERROR', args)
-            sys.exit(0)
+            pass
 
         # Loop infinitely until loop is broken out of
         while True:
@@ -219,6 +217,7 @@ def main():
                     if error_counter >= 9:
                         finish_job(args, time_start)
                         sys.exit(0)
+                    helpers.log('Encountered 3 successive errors when trying to retrieve stats, switching accounts', 'INFO', args)
                     break
                 continue
 
@@ -249,12 +248,12 @@ def main():
             bytes_left_to_transfer = int(amount_to_transfer_bytes) - bytes_transferred
             eta = helpers.calculate_transfer_eta(bytes_left_to_transfer, transfer_speed_bytes)
 
-            helpers.log('{}/{} @ {}/s Files Checked: {} SA: {} ETA: {}'.format(best_unit_transferred, amount_to_transfer, transfer_speed, checks_done, id, eta), "INFO", args, end='\r')
+            helpers.log('{}/{} @ {}/s Files Checked: {} SA: {} ETA: {}'.format(best_unit_transferred, amount_to_transfer, transfer_speed, checks_done, id, eta) + (" " * 10), "INFO", args, end='\r')
 
             # continually no ...
             if bytes_transferred - last_bytes_transferred == 0:
                 dead_transfer_counter += 1
-                helpers.log('No bytes transferred, RClone may be dead ({}/{})'.format(dead_transfer_counter, TRANSFER_DEAD_THRESHOLD), 'DEBUG', args)
+                helpers.log('No bytes transferred, RClone may be dead ({}/{})'.format(dead_transfer_counter, TRANSFER_DEAD_THRESHOLD) + (" " * 10), 'DEBUG', args)
             else:
                 dead_transfer_counter = 0
                 job_started = True
