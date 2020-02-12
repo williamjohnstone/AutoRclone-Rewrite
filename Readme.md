@@ -32,7 +32,8 @@ NOTE: This is a work in progress, here is a todo list
 - Removed decimal place in eta
 - Made sure source and destination paths are actually used
 - Reverted `Changed output to 2 decimals in helpers.convert_bytes_to_best_unit()`
-- Better transfer size checks (still not perfect as doesn't account for files that are already on the destination) 
+- Better transfer size checks (still not perfect as doesn't account for files that are already on the destination)
+- Made sure arg parser uses utf8 encoding
 
 ### 11th February 2020
 - Changed output to 2 decimals in `helpers.convert_bytes_to_best_unit()`
