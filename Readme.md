@@ -3,11 +3,15 @@
 Original Repository: https://github.com/xyou365/AutoRclone
 
 NOTE: This is a work in progress, here is a todo list
-## TODO:
+
+## TODO
+
+- [] Add ability to watch folder
 - [x] Add estimated time of completion
+- [ ] Fix ETA for some edge cases (syncing files, etc. where whole source will not be transferred)
 - [x] Rewrite output, make it less ugly, proposed layout: `[AutoRClone] (Job Name) amount transferred/total transfer amount @ <transfer speed here> SA: <num of SA here> ETA: <ETA Here>`
 - [x] Add command line args to choose between copy, move or sync
-- [x] Add bandwidth Limiting 
+- [x] Add bandwidth Limiting
 - [x] Implement proper support for encrypted sources and destinations
 - [x] Remove rc connect failed output messages to reduce confusion
 - [x] Add more command line args to set RClone args
@@ -21,13 +25,26 @@ NOTE: This is a work in progress, here is a todo list
 - [x] Replace `sys.exit()` calls with messages with proper logging
 - [x] Implement my own transfer speed calculator as the speeds RClone is reporting seem to be off
 - [x] Retain amount transferred between SAs
-- [ ] Use RClone rc to calculate transfer amount instead of size of source
+- [ ] Automatically rotate SAs that have reached their 24hr quota
+- [ ] Ignore no bytes transferred if file checks are increasing
 
 *Instructions will be written once the rewrite is complete.*
 
+## Usage Instructions
+
+### 
+
 ## Changelog
 
+### 21st November 2020
+
+- Updated `.gitignore` to exclude python venv files
+- Changed some messages in the main script
+- Commented some stuff that is broken so I can fix it later lmao
+- Also this actually works which is news to me I thought it was broken :)
+
 ### 12th February 2020
+
 - Fixed divide by 0 bug in `helpers.calculate_transfer_eta()`
 - Removed decimal place in eta
 - Made sure source and destination paths are actually used
@@ -41,6 +58,7 @@ NOTE: This is a work in progress, here is a todo list
 - Added number to 3 successive error message
 
 ### 11th February 2020
+
 - Changed output to 2 decimals in `helpers.convert_bytes_to_best_unit()`
 - Added `--debug` arg
 - Added `log` helper function
@@ -51,6 +69,7 @@ NOTE: This is a work in progress, here is a todo list
 - Done lots of changes to `autorclone.py` over like 3 hours and I honestly don't remember what they are
 
 ### 10th February 2020
+
 - Added stuff to `.gitignore` to prevent credential leaks
 - Finished new config generation
 - Fixed config gen loop logic
@@ -63,6 +82,7 @@ NOTE: This is a work in progress, here is a todo list
 - Implemented amount to transfer output
 
 ### 9th February 2020
+
 - Removed old README content
 - Removed `AutoRclone.jpg`
 - Renamed `rclone_sa_magic.py` to `autorclone.py` 

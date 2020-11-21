@@ -217,7 +217,7 @@ def main():
                     if error_counter >= 9:
                         finish_job(args, time_start)
                         sys.exit(0)
-                    helpers.log('Encountered 3 successive errors when trying to retrieve stats, switching accounts ({}/3)'.format(error_counter/sa_error_counter), 'INFO', args)
+                    helpers.log('Encountered 3 successive errors when trying to contact rclone, switching accounts ({}/3)'.format(error_counter/sa_error_counter), 'INFO', args)
                     break
                 continue
 
@@ -268,7 +268,7 @@ def main():
                     kill_cmd = "kill -9 {}".format(PID)
                 try:
                     subprocess.check_call(kill_cmd, shell=True)
-                    helpers.log('Transfer limit reached or RClone is inactive, switching service accounts', 'INFO', args)
+                    helpers.log('Transfer limit reached or RClone is not transferring any data, switching service accounts', 'INFO', args)
                     amount_to_transfer_bytes -= bytes_transferred
                     amount_to_transfer = helpers.convert_bytes_to_best_unit(amount_to_transfer_bytes)
                     global_bytes_transferred += bytes_transferred

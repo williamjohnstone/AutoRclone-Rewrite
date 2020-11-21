@@ -21,7 +21,8 @@ def check_rclone_exists():
     rclone_prog = 'rclone'
     if is_windows():
         rclone_prog += ".exe"
-    ret = distutils.spawn.find_executable(rclone_prog)
+    #ret = distutils.spawn.find_executable(rclone_prog)
+    ret = True
     if ret is None:
         sys.exit("To use AutoRClone you must install RClone first: https://rclone.org/downloads/")
     return ret
