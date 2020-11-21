@@ -27,12 +27,161 @@ NOTE: This is a work in progress, here is a todo list
 - [x] Retain amount transferred between SAs
 - [ ] Automatically rotate SAs that have reached their 24hr quota
 - [ ] Ignore no bytes transferred if file checks are increasing
+- [ ] Finish command line argument documentation
 
 *Instructions will be written once the rewrite is complete.*
 
-## Usage Instructions
+## Documentation
 
-### 
+PLEASE NOTE: This documentation is not complete.
+
+### Reading Remotes from an RClone config file
+
+One of the main benefits of this rewrite is being able to read your existing rclone remotes and use them to transfer data. To use this feature you must specifiy an rclone config file, for this, use the `--rclone-config-path` argument as shown below.
+
+`python3 autorclone.py --copy `
+
+`python3 autorclone.py --sync -s g-media-crypt -sp media/ -d g-media-crypt-2 -
+dp media/ --rclone-config-path /root/.config/rclone/rclone.conf --drive-chunk-size 64M --transfers 8  --sa-start-id 9`
+
+### Command Line Arguments
+
+#### copy
+
+Description: **Copy files from source to destination.**
+Example Usage: `python3 autorclone.py --copy -s <source> -d <destination>`
+
+#### move
+
+Description: **Move files from source to destination.**
+Example Usage: `python3 autorclone.py --move -s <source> -d <destination>`
+
+#### sync
+
+Description: **Sync the source to the destination, changing the destination only. Doesn’t transfer unchanged files.**
+Example Usage: `python3 autorclone.py --sync -s <source> -d <destination>`
+
+#### source
+
+Shorthand: `s`
+Description: **The source of your files. ID of Team Drive, ID of publicly shared folder or an RClone remote (Must use --rclone-config-path).**
+Example Usage: `python3 autorclone.py --copy -s <source> -d <destination>`
+
+#### destination
+
+Shorthand: `d`
+Description: **The destination for your files. ID of Team Drive, ID of publicly shared folder or an RClone remote (Must use --rclone-config-path).**
+Example Usage: `python3 autorclone.py --copy -s <source> -d <destination>`
+
+#### source-path
+
+Shorthand: `sp`
+Description: **The folder path inside source. (Local Path or path in Google Drive).**
+Example Usage: `python3 autorclone.py --copy -s <source> -sp somefolder/subfolder -d <destination>`
+Default: 
+
+#### destination-path
+
+Shorthand: `dp`
+Description: **The folder path inside the destination. (Local path or path in Google Drive).**
+Example Usage: `python3 autorclone.py --copy -s <source> -d <destination> -dp somefolder/subfolder`
+Default: 
+
+#### name
+
+Shorthand: `n`
+Description: **Copy files from source to destination.**
+Example Usage: `python3 autorclone.py --copy -s <source> -d <destination>`
+
+#### log-file
+
+Description: **Copy files from source to destination.**
+Example Usage: `python3 autorclone.py --copy -s <source> -d <destination>`
+
+#### rclone-log-file
+
+Description: **Copy files from source to destination.**
+Example Usage: `python3 autorclone.py --copy -s <source> -d <destination>`
+
+#### service-account-dir
+
+Description: **Copy files from source to destination.**
+Example Usage: `python3 autorclone.py --copy -s <source> -d <destination>`
+
+#### port
+
+Description: **Copy files from source to destination.**
+Example Usage: `python3 autorclone.py --copy -s <source> -d <destination>`
+
+#### sa-start-id
+
+Description: **Copy files from source to destination.**
+Example Usage: `python3 autorclone.py --copy -s <source> -d <destination>`
+
+#### sa-end-id
+
+Description: **Copy files from source to destination.**
+Example Usage: `python3 autorclone.py --copy -s <source> -d <destination>`
+
+#### rclone-config-path
+
+Description: **Copy files from source to destination.**
+Example Usage: `python3 autorclone.py --copy -s <source> -d <destination>`
+
+#### dry-run
+
+Description: **Copy files from source to destination.**
+Example Usage: `python3 autorclone.py --copy -s <source> -d <destination>`
+
+#### bwlimit
+
+Description: **Copy files from source to destination.**
+Example Usage: `python3 autorclone.py --copy -s <source> -d <destination>`
+
+#### tpslimit
+
+Description: **Copy files from source to destination.**
+Example Usage: `python3 autorclone.py --copy -s <source> -d <destination>`
+
+#### transfers
+
+Description: **Copy files from source to destination.**
+Example Usage: `python3 autorclone.py --copy -s <source> -d <destination>`
+
+#### drive-chunk-size
+
+Description: **Copy files from source to destination.**
+Example Usage: `python3 autorclone.py --copy -s <source> -d <destination>`
+
+#### delete-empty-src-dirs
+
+Description: **Copy files from source to destination.**
+Example Usage: `python3 autorclone.py --copy -s <source> -d <destination>`
+
+#### create-empty-src-dirs
+
+Description: **Copy files from source to destination.**
+Example Usage: `python3 autorclone.py --copy -s <source> -d <destination>`
+
+#### v
+
+Description: **Copy files from source to destination.**
+Example Usage: `python3 autorclone.py --copy -s <source> -d <destination>`
+
+#### vv
+
+Description: **Copy files from source to destination.**
+Example Usage: `python3 autorclone.py --copy -s <source> -d <destination>`
+
+#### debug
+
+Description: **Copy files from source to destination.**
+Example Usage: `python3 autorclone.py --copy -s <source> -d <destination>`
+
+#### generated-config-path
+
+Description: **Copy files from source to destination.**
+Example Usage: `python3 autorclone.py --copy -s <source> -d <destination>`
 
 ## Changelog
 
@@ -43,6 +192,8 @@ NOTE: This is a work in progress, here is a todo list
 - Commented some stuff that is broken so I can fix it later lmao
 - Also this actually works which is news to me I thought it was broken :)
 - Renamed `Readme.md` to `README.md`
+- Added all current command line arguments to the documentation
+- Start documentation
 
 ### 12th February 2020
 

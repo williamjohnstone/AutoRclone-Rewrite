@@ -24,7 +24,7 @@ def parse_args():
                         help='The folder path inside source. (Local Path or path in Google Drive).')
 
     parser.add_argument('-dp', '--destination-path', type=str, default='',
-                        help='The folder path of the destination. (Local path or path in Google Drive).')
+                        help='The folder path inside the destination. (Local path or path in Google Drive).')
 
     parser.add_argument('-n', '--name', type=str, default='untitled',
                         help='Name your AutoRClone job, AutoRClone creates a log for each job, naming your jobs may be beneficial.')
@@ -38,7 +38,7 @@ def parse_args():
     parser.add_argument('--service-account-dir', type=str, default='accounts',
                         help='The directory path of json files for service account credentials.')
 
-    parser.add_argument('--port', type=int, default=5572,
+    parser.add_argument('-p', '--port', type=int, default=5572,
                         help='the port to run RClone rc. set it to different one if you want to run other instance.')
 
     parser.add_argument('--sa-start-id', type=int, default=1,
