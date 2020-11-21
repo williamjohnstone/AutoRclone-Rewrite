@@ -6,7 +6,7 @@ NOTE: This is a work in progress, here is a todo list
 
 ## TODO
 
-- [] Add ability to watch folder
+- [ ] Add ability to watch folder
 - [x] Add estimated time of completion
 - [ ] Fix ETA for some edge cases (syncing files, etc. where whole source will not be transferred)
 - [x] Rewrite output, make it less ugly, proposed layout: `[AutoRClone] (Job Name) amount transferred/total transfer amount @ <transfer speed here> SA: <num of SA here> ETA: <ETA Here>`
@@ -42,6 +42,7 @@ NOTE: This is a work in progress, here is a todo list
 - Changed some messages in the main script
 - Commented some stuff that is broken so I can fix it later lmao
 - Also this actually works which is news to me I thought it was broken :)
+- Renamed `Readme.md` to `README.md`
 
 ### 12th February 2020
 
