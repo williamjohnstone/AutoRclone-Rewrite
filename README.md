@@ -26,7 +26,7 @@ NOTE: This is a work in progress, here is a todo list
 - [x] Implement my own transfer speed calculator as the speeds RClone is reporting seem to be off
 - [x] Retain amount transferred between SAs
 - [ ] Automatically rotate SAs that have reached their 24hr quota
-- [ ] Ignore no bytes transferred if file checks are increasing
+- [x] Ignore no bytes transferred if file checks are increasing
 - [ ] Finish command line argument documentation
 
 *Instructions will be written once the rewrite is complete.*
