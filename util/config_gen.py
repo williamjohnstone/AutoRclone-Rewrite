@@ -54,8 +54,8 @@ def gen_remote_template(src_or_dest, parsed_config, args, is_config_file_specifi
                         "service_account_file = {}\n"
                     if remote.team_drive:
                         remote_template += "{} = {}\n\n".format("team_drive", remote.team_drive)
-                    elif remote.source_path_id:
-                        remote_template += "{} = {}\n\n".format("source_path_id", remote.source_path_id)
+                    elif remote.root_folder_id:
+                        remote_template += "{} = {}\n\n".format("root_folder_id", remote.root_folder_id)
 
             # If remote is found exit loop
             if found:
