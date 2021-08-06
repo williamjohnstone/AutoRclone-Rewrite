@@ -1,6 +1,14 @@
-## Changelog
+# Changelog
 
-### 21st November 2020
+## 6th August 2021
+
+- Fixed dead transfer trigger during rclone file checks
+- Fixed UnboundLocalError in config parser when remote is of type drive and has no root folder and isnt a team drive
+- Moved Changelog to seperate file
+- Fix gen_sa_accounts.py not filtering dead projects
+- Add support for folder IDs with 28 characters
+
+## 21st November 2020
 
 - Updated `.gitignore` to exclude python venv files
 - Changed some messages in the main script
@@ -10,7 +18,7 @@
 - Added all current command line arguments to the documentation
 - Start documentation
 
-### 12th February 2020
+## 12th February 2020
 
 - Fixed divide by 0 bug in `helpers.calculate_transfer_eta()`
 - Removed decimal place in eta
@@ -24,7 +32,7 @@
 - Changed rclone command logging to debug log
 - Added number to 3 successive error message
 
-### 11th February 2020
+## 11th February 2020
 
 - Changed output to 2 decimals in `helpers.convert_bytes_to_best_unit()`
 - Added `--debug` arg
@@ -35,7 +43,7 @@
 - Re-implemented RClone command
 - Done lots of changes to `autorclone.py` over like 3 hours and I honestly don't remember what they are
 
-### 10th February 2020
+## 10th February 2020
 
 - Added stuff to `.gitignore` to prevent credential leaks
 - Finished new config generation
@@ -48,11 +56,11 @@
 - Added `calculate_path_size` helper function
 - Implemented amount to transfer output
 
-### 9th February 2020
+## 9th February 2020
 
 - Removed old README content
 - Removed `AutoRclone.jpg`
-- Renamed `rclone_sa_magic.py` to `autorclone.py` 
+- Renamed `rclone_sa_magic.py` to `autorclone.py`
 - Added instructions note
 - Implemented bandwidth limiting with `--bwlimit` arg
 - Added many command line args to change RClone settings instead of them being hardcoded
