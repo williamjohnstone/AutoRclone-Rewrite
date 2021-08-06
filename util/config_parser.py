@@ -1,5 +1,6 @@
 import sys
 from dataclasses import dataclass
+from util import helpers
 
 @dataclass
 class drive_remote:
@@ -19,7 +20,7 @@ class crypt_remote:
     password2: str
 
 
-def parse_config(file_path):
+def parse_config(file_path, args):
     try:
         file = open(file_path, 'r')
     except FileNotFoundError:
@@ -68,6 +69,8 @@ def parse_config(file_path):
         password = None
         password2 = None
 
+        willSkipRemote = False
+
 
         for prop in properties:
 
@@ -92,9 +95,11 @@ def parse_config(file_path):
             if team_drive or root_folder_id:
                 new_remote = drive_remote(name, team_drive, root_folder_id)
             else:
-                pass
+                willSkipRemote = True
+                helpers.log("Rclone remote '{}' is not available for use with service accounts please specify either a root_folder_id or team_drive.".format(name), "WARN", args)
         elif remote_type == "crypt":
             new_remote = crypt_remote(name, remote, filename_encryption, directory_name_encryption, password, password2)
 
-        remotes.append(new_remote)
+        if not willSkipRemote:
+            remotes.append(new_remote)
     return remotes

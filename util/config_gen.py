@@ -98,7 +98,7 @@ def gen_rclone_cfg(args, filepath):
     parsed_config = None
     if args.rclone_config_path:
         is_config_file_specified = True
-        parsed_config = config_parser.parse_config(args.rclone_config_path)
+        parsed_config = config_parser.parse_config(args.rclone_config_path, args)
 
     # Source parsing
     if args.source:
