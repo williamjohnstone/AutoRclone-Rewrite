@@ -178,6 +178,8 @@ def main():
         dead_transfer_counter = 0
         # Updated on each loop
         last_bytes_transferred = 0
+        # Updated on each loop
+        last_check_counter = 0
         # Counter for amount of successful stat retrievals from RClone rc (per sa)
         sa_success_counter = 0
 
@@ -251,7 +253,7 @@ def main():
             helpers.log('{}/{} @ {}/s Files Checked: {} SA: {} ETA: {}'.format(best_unit_transferred, amount_to_transfer, transfer_speed, checks_done, id, eta) + (" " * 10), "INFO", args, end='\r')
 
             # continually no ...
-            if bytes_transferred - last_bytes_transferred == 0:
+            if bytes_transferred - last_bytes_transferred == 0 and checks_done == last_check_counter:
                 dead_transfer_counter += 1
                 helpers.log('No bytes transferred, RClone may be dead ({}/{})'.format(dead_transfer_counter, TRANSFER_DEAD_THRESHOLD) + (" " * 10), 'DEBUG', args)
             else:
@@ -259,6 +261,7 @@ def main():
                 job_started = True
 
             last_bytes_transferred = bytes_transferred
+            last_check_counter = checks_done
 
             # Stop by error (403, etc) info
             if bytes_transferred >= MAX_TRANSFER_BYTES or dead_transfer_counter >= TRANSFER_DEAD_THRESHOLD:

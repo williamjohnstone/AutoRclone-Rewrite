@@ -62,7 +62,7 @@ def gen_remote_template(src_or_dest, parsed_config, args, is_config_file_specifi
                 break
 
     if not found:
-        if len(src_or_dest) == 33:
+        if len(src_or_dest) == [28,33]:
             folder_or_team_drive_src = 'root_folder_id'
         elif len(src_or_dest) == 19:
             folder_or_team_drive_src = 'team_drive'
