@@ -7,6 +7,7 @@
 - Moved Changelog to seperate file
 - Fix gen_sa_accounts.py not filtering dead projects
 - Add support for folder IDs with 28 characters
+- Fixed incorrect naming in config parser `source_path_id` changed to `root_folder_id`
 
 ## 21st November 2020
 

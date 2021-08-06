@@ -29,8 +29,8 @@ def gen_remote_template(src_or_dest, parsed_config, args, is_config_file_specifi
                                 'service_account_file = {}\n'
                             if unencrypted_remote.team_drive:
                                 remote_template += '{} = {}\n\n'.format('team_drive', unencrypted_remote.team_drive)
-                            #elif unencrypted_remote.source_path_id:
-                            #    remote_template += '{} = {}\n\n'.format('source_path_id', unencrypted_remote.source_path_id)
+                            elif unencrypted_remote.root_folder_id:
+                                remote_template += "{} = {}\n\n".format("root_folder_id", unencrypted_remote.root_folder_id)
                         if unencrypted_remote_found:
                             break
                     if not unencrypted_remote_found:
