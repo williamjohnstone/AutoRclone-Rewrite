@@ -40,13 +40,14 @@ def gen_remote_template(src_or_dest, parsed_config, args, is_config_file_specifi
                     remote_template += '[{}{:03d}_crypt]\n' \
                         'type = crypt\n' \
                         'remote = {}{:03d}:' + crypt_remote_parts[1] + '\n' \
-                        'filename_encryption = ' + remote.filename_encryption + '\n' \
-                        'directory_name_encryption = ' + remote.directory_name_encryption + '\n' \
-                        'password = ' + remote.password + '\n' 
+                        'password = ' + remote.password + '\n'
                     if remote.password2:
-                        remote_template += 'password2 = ' + remote.password2 + '\n\n'
-                    else:
-                        remote_template += '\n'
+                        remote_template += 'password2 = ' + remote.password2 + '\n'
+                    if remote.filename_encryption:
+                        remote_template += 'filename_encryption = ' + remote.filename_encryption + '\n'
+                    if remote.directory_name_encryption:
+                        remote_template += 'directory_name_encryption = ' + remote.directory_name_encryption + '\n'
+                    remote_template += '\n'
                 else:
                     remote_template = "[{}{:03d}]\n" \
                         "type = drive\n" \
