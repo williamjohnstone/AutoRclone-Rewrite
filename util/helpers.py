@@ -58,7 +58,7 @@ def calculate_path_size(path, config_file):
     response = subprocess.check_output('rclone --config {} size \"{}\"'.format(config_file, path), shell=True, stderr=subprocess.DEVNULL)
     response_processed = response.decode('utf-8').replace('\0', '')
     response_bytes = response_processed.split('(')[1]
-    response_bytes = response_bytes.replace(' bytes)', '').strip()
+    response_bytes = response_bytes.lower().replace(' bytes)', '').strip()
 
     return response_bytes
 
