@@ -3,6 +3,7 @@ import subprocess
 import sys
 import distutils
 import time
+import pickledb
 from pathlib import Path
 import os
 
@@ -58,7 +59,7 @@ def calculate_path_size(path, config_file):
     response = subprocess.check_output('rclone --config {} size \"{}\"'.format(config_file, path), shell=True, stderr=subprocess.DEVNULL)
     response_processed = response.decode('utf-8').replace('\0', '')
     response_bytes = response_processed.split('(')[1]
-    response_bytes = response_bytes.replace('Bytes)', '').strip()
+    response_bytes = response_bytes.replace(' bytes)', '').strip()
 
     return response_bytes
 
@@ -99,3 +100,26 @@ def calculate_transfer_eta(bytes_to_transfer, transfer_speed_bytes):
         eta_string += '{}s'.format(int(sec))
 
     return eta_string
+
+def checkTimestamp(dst, save = False):
+    dst = str(dst)
+    db = pickledb.load('accounts.db', False)
+    tmp_time = round(time.time())
+
+    if save:
+        db.set(dst, tmp_time)
+        print('Account gemerkt!')
+        db.dump()
+        return True
+
+    # Time since limit is over 24h
+    if db.get(dst) and tmp_time - db.get(dst) >= 86400:
+        print('Over 24h since last limit! Using Account again')
+        return True
+    # Time since limit is over 24h
+    elif db.get(dst) and tmp_time - db.get(dst) < 86400:
+        print('Under 24h since last limit! Not using Account again')
+        return False
+    else:
+        return True
+    
