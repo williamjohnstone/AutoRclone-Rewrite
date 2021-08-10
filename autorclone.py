@@ -130,9 +130,6 @@ def main():
             helpers.log('Source size: ' + amount_to_transfer + '\n', 'INFO', args)
 
         if helpers.checkTimestamp(id):
-
-            dead_transfer_counter = 0
-
             # Construct RClone command
             rclone_cmd = 'rclone --config {} '.format(rclone_generated_config_path)
             if args.copy:
