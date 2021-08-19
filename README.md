@@ -7,6 +7,7 @@ NOTE: This is a work in progress, here is a todo list
 ## TODO
 
 - [ ] Add ability to watch folder
+- [ ] Retain amount transferred between SAs
 - [ ] Rewrite `add_to_google_group.py`, `add_to_team_drive.py` and `gen_sa_accounts.py` to make them more intuitive and fix broken english
 - [ ] Write instructions
 - [ ] Add debug logging
@@ -27,7 +28,6 @@ NOTE: This is a work in progress, here is a todo list
 - [x] ~~Replace all prints with new logger~~
 - [x] ~~Replace `sys.exit()` calls with messages with proper logging~~
 - [x] ~~Implement my own transfer speed calculator as the speeds RClone is reporting seem to be off~~
-- [x] ~~Retain amount transferred between SAs~~
 - [x] ~~Automatically rotate SAs that have reached their 24hr quota~~
 - [x] ~~Ignore no bytes transferred if file checks are increasing~~
 
