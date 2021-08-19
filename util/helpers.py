@@ -1,9 +1,10 @@
 import platform
 import subprocess
 import sys
-import distutils
+import re
 import time
 import pickledb
+import math
 from pathlib import Path
 import os
 
@@ -29,39 +30,31 @@ def check_rclone_exists():
     return ret
 
 
-def convert_bytes_to_best_unit(bytes_value):
-    bytes_value = float(bytes_value)
+# Inspired from https://stackoverflow.com/a/14822210
+def convert_bytes_to_best_unit(bytes):
+   if bytes == 0:
+       return "0 Bytes"
+   sizes = ("Bytes", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+   i = int(math.floor(math.log(bytes, 1024)))
+   s = round(bytes / math.pow(1024, i), 2)
+   return str(s) + sizes[i]
 
-    value_tmp = bytes_value * 1e-15
-    if value_tmp >= 1:
-        return str(round(value_tmp, 1)) + "PB"
-
-    value_tmp = bytes_value * 1e-12
-    if value_tmp >= 1:
-        return str(round(value_tmp, 1)) + "TB"
-
-    value_tmp = bytes_value * 1e-9
-    if value_tmp >= 1:
-        return str(round(value_tmp, 1)) + "GB"
-
-    value_tmp = bytes_value * 1e-6
-    if value_tmp >= 1:
-        return str(round(value_tmp, 1)) + "MB"
-
-    value_tmp = bytes_value * 1e-3
-    if value_tmp >= 1:
-        return str(round(value_tmp, 1)) + "kB"
-
-    return str(bytes_value) + "B"
 
 # Calculate path size in bytes using RClone
-def calculate_path_size(path, config_file):
-    response = subprocess.check_output('rclone --config {} size \"{}\"'.format(config_file, path), shell=True, stderr=subprocess.DEVNULL)
-    response_processed = response.decode('utf-8').replace('\0', '')
-    response_bytes = response_processed.split('(')[1]
-    response_bytes = response_bytes.replace(' bytes)', '').strip()
+def calculate_path_size(config_file, src_label, dst_label):
+    cmd = ['rclone.exe', '--config', config_file, 'copy', '--dry-run', src_label, dst_label]
+    pattern = re.compile("([\d,]+\.\d+? [A-z]{6}), ([0-9]{1,3})", re.M)
+    process = subprocess.Popen(cmd, shell=False, stderr=subprocess.PIPE)
+    for line in process.stderr:
+        match = re.search(pattern, line.decode('utf-8'))
+        if match and match[2] == "100":
+            return(rclone_size_to_bytes(match[1]))
 
-    return response_bytes
+# Inspired from https://stackoverflow.com/a/42865957
+def rclone_size_to_bytes(size):
+    units = {"B": 1, "KiByte": 10**3, "MiByte": 10**6, "GiByte": 10**9, "TiByte": 10**12}
+    number, unit = [string.strip() for string in size.split()]
+    return int(float(number)*units[unit])
 
 
 def log(msg, level, args, end=None):

@@ -125,7 +125,7 @@ def main():
                 dst_label += args.destination_path
 
         if id == args.sa_start_id:
-            amount_to_transfer_bytes = int(helpers.calculate_path_size(src_label, rclone_generated_config_path)) - int(helpers.calculate_path_size(dst_label, rclone_generated_config_path))
+            amount_to_transfer_bytes = int(helpers.calculate_path_size(rclone_generated_config_path, src_label, dst_label))
             amount_to_transfer = helpers.convert_bytes_to_best_unit(amount_to_transfer_bytes)
             helpers.log('Source size: ' + amount_to_transfer + '\n', 'INFO', args)
 
@@ -224,8 +224,8 @@ def main():
                             finish_job(args, time_start)
                             sys.exit(0)
                         helpers.log('Encountered 3 successive errors when trying to contact rclone, switching accounts ({}/3)'.format(error_counter/sa_error_counter), 'INFO', args)
-                        helpers.checkTimestamp(id, True)
-                        helpers.log('Triggered Acc Save', 'DEBUG', args)
+                        #helpers.checkTimestamp(id, True)
+                        #helpers.log('Triggered Acc Save', 'DEBUG', args)
                         break
                     continue
 
