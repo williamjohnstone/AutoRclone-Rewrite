@@ -12,11 +12,11 @@ NOTE: This is a work in progress, here is a todo list
 - [ ] Add debug logging
 - [ ] Finish command line argument documentation
 
-~~
-- [x] Add estimated time of completion
+
+- [x] ~~Add estimated time of completion~~
 - [x] Fix ETA for some edge cases (syncing files, etc. where whole source will not be transferred)
 - [x] Rewrite output, make it less ugly, proposed layout: `[AutoRClone] (Job Name) amount transferred/total transfer amount @ <transfer speed here> SA: <num of SA here> ETA: <ETA Here>`
-- [x] Add command line args to choose between copy, move or sync
+- [x] ~~Add command line args to choose between copy, move or sync~~
 - [x] Add bandwidth Limiting
 - [x] Implement proper support for encrypted sources and destinations
 - [x] Remove rc connect failed output messages to reduce confusion
@@ -30,7 +30,7 @@ NOTE: This is a work in progress, here is a todo list
 - [x] Retain amount transferred between SAs
 - [x] Automatically rotate SAs that have reached their 24hr quota
 - [x] Ignore no bytes transferred if file checks are increasing
-~~
+
 *Instructions will be written once the rewrite is complete.*
 
 ## Documentation
