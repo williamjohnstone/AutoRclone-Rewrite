@@ -108,17 +108,17 @@ def checkTimestamp(dst, save = False):
 
     if save:
         db.set(dst, tmp_time)
-        print('Account gemerkt!')
+        print('Account over limit. Saving into DB...')
         db.dump()
         return True
 
     # Time since limit is over 24h
     if db.get(dst) and tmp_time - db.get(dst) >= 86400:
-        print('Over 24h since last limit! Using Account again')
+        print('Over 24h since last limit! Using Account again...')
         return True
     # Time since limit is over 24h
     elif db.get(dst) and tmp_time - db.get(dst) < 86400:
-        print('Under 24h since last limit! Not using Account again')
+        print('Under 24h since last limit! Not using Account again...')
         return False
     else:
         return True
