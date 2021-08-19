@@ -8,7 +8,7 @@ NOTE: This is a work in progress, here is a todo list
 
 - [ ] Add ability to watch folder
 - [x] Add estimated time of completion
-- [ ] Fix ETA for some edge cases (syncing files, etc. where whole source will not be transferred)
+- [x] Fix ETA for some edge cases (syncing files, etc. where whole source will not be transferred)
 - [x] Rewrite output, make it less ugly, proposed layout: `[AutoRClone] (Job Name) amount transferred/total transfer amount @ <transfer speed here> SA: <num of SA here> ETA: <ETA Here>`
 - [x] Add command line args to choose between copy, move or sync
 - [x] Add bandwidth Limiting
@@ -25,8 +25,8 @@ NOTE: This is a work in progress, here is a todo list
 - [x] Replace `sys.exit()` calls with messages with proper logging
 - [x] Implement my own transfer speed calculator as the speeds RClone is reporting seem to be off
 - [x] Retain amount transferred between SAs
-- [ ] Automatically rotate SAs that have reached their 24hr quota
-- [ ] Ignore no bytes transferred if file checks are increasing
+- [x] Automatically rotate SAs that have reached their 24hr quota
+- [x] Ignore no bytes transferred if file checks are increasing
 - [ ] Finish command line argument documentation
 
 *Instructions will be written once the rewrite is complete.*
