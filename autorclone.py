@@ -10,8 +10,8 @@ import hashlib
 PID = 0
 
 # Parameters for script
-MAX_TRANSFER_BYTES = (700 * 1e9) # If one account has already copied 740GB (740 * 1e9), switch to next account
-TRANSFER_DEAD_THRESHOLD = 2  # If no bytes are transferred after 60 loops (120 seconds), exit
+MAX_TRANSFER_BYTES = (740 * 1e9) # If one account has already copied 740GB (740 * 1e9), switch to next account
+TRANSFER_DEAD_THRESHOLD = 60  # If no bytes are transferred after 60 loops (120 seconds), exit
 SA_EXIT_TRESHOLD = 3  # If SAs are switched 3 successive times with no transfers, exit
 
 # Exit handler to that kills the RClone process if the script is terminated
@@ -142,7 +142,7 @@ def main():
                 helpers.log('Please specify an operation (--copy, --move or --sync)', 'ERROR', args)
                 sys.exit()
 
-            rclone_cmd += '--drive-server-side-across-configs --drive-acknowledge-abuse --ignore-existing --rc '
+            rclone_cmd += '--drive-server-side-across-configs --drive-acknowledge-abuse --drive-stop-on-upload-limit --ignore-existing --rc '
             rclone_cmd += '--rc-addr=\"localhost:{}\" --tpslimit {} --transfers {} --drive-chunk-size {} --bwlimit {} --log-file {} '.format(
                 args.port, args.tpslimit, args.transfers, args.drive_chunk_size, args.bwlimit, args.rclone_log_file)
             if args.dry_run:
