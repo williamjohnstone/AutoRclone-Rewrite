@@ -280,7 +280,6 @@ def main():
                         subprocess.check_call(kill_cmd, shell=True)
                         helpers.log('Transfer limit reached or RClone is not transferring any data, switching service accounts', 'INFO', args)
                         helpers.checkTimestamp(id, True)
-                        helpers.log('Triggered Acc Save', 'DEBUG', args)
                         amount_to_transfer_bytes -= bytes_transferred
                         amount_to_transfer = helpers.convert_bytes_to_best_unit(amount_to_transfer_bytes)
                         global_bytes_transferred += bytes_transferred
