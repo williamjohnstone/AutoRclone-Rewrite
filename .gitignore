@@ -2,12 +2,14 @@
 __pycache__/
 *.py[cod]
 *$py.class
+rclone.exe
 
 # macOS stuff
 .DS_STORE
 
 # Prevent credential leaks
 rclone.conf
+accounts.db
 credentials.json
 accounts/*
 credentials/*

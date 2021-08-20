@@ -41,8 +41,8 @@ def convert_bytes_to_best_unit(bytes):
 
 
 # Calculate path size in bytes using RClone
-def calculate_path_size(config_file, src_label, dst_label):
-    cmd = ['rclone', '--config', config_file, 'copy', '--dry-run', src_label, dst_label]
+def calculate_path_size(config_file, src_label, dst_label, action):
+    cmd = ['rclone', '--config', config_file, action, '--dry-run', src_label, dst_label]
     pattern = re.compile("([\d,]+\.\d+? [A-z]{6}), ([0-9]{1,3})", re.M)
     process = subprocess.Popen(cmd, shell=False, stderr=subprocess.PIPE)
     for line in process.stderr:

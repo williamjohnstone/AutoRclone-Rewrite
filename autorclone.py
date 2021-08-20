@@ -125,7 +125,16 @@ def main():
                 dst_label += args.destination_path
 
         if id == args.sa_start_id:
-            amount_to_transfer_bytes = int(helpers.calculate_path_size(rclone_generated_config_path, src_label, dst_label))
+            if args.copy:
+                action = 'copy '
+            elif args.move:
+                action = 'move '
+            elif args.sync:
+                action = 'sync '
+            else:
+                helpers.log('Please specify an operation (--copy, --move or --sync)', 'ERROR', args)
+                sys.exit()
+            amount_to_transfer_bytes = int(helpers.calculate_path_size(rclone_generated_config_path, src_label, dst_label, action))
             amount_to_transfer = helpers.convert_bytes_to_best_unit(amount_to_transfer_bytes)
             helpers.log('Source size: ' + amount_to_transfer + '\n', 'INFO', args)
 
