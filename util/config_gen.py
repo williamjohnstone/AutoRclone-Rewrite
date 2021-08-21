@@ -29,8 +29,8 @@ def gen_remote_template(src_or_dest, parsed_config, args, is_config_file_specifi
                                 'service_account_file = {}\n'
                             if unencrypted_remote.team_drive:
                                 remote_template += '{} = {}\n\n'.format('team_drive', unencrypted_remote.team_drive)
-                            #elif unencrypted_remote.source_path_id:
-                            #    remote_template += '{} = {}\n\n'.format('source_path_id', unencrypted_remote.source_path_id)
+                            elif unencrypted_remote.root_folder_id:
+                                remote_template += "{} = {}\n\n".format("root_folder_id", unencrypted_remote.root_folder_id)
                         if unencrypted_remote_found:
                             break
                     if not unencrypted_remote_found:
@@ -40,13 +40,14 @@ def gen_remote_template(src_or_dest, parsed_config, args, is_config_file_specifi
                     remote_template += '[{}{:03d}_crypt]\n' \
                         'type = crypt\n' \
                         'remote = {}{:03d}:' + crypt_remote_parts[1] + '\n' \
-                        'filename_encryption = ' + remote.filename_encryption + '\n' \
-                        'directory_name_encryption = ' + remote.directory_name_encryption + '\n' \
-                        'password = ' + remote.password + '\n' 
+                        'password = ' + remote.password + '\n'
                     if remote.password2:
-                        remote_template += 'password2 = ' + remote.password2 + '\n\n'
-                    else:
-                        remote_template += '\n'
+                        remote_template += 'password2 = ' + remote.password2 + '\n'
+                    if remote.filename_encryption:
+                        remote_template += 'filename_encryption = ' + remote.filename_encryption + '\n'
+                    if remote.directory_name_encryption:
+                        remote_template += 'directory_name_encryption = ' + remote.directory_name_encryption + '\n'
+                    remote_template += '\n'
                 else:
                     remote_template = "[{}{:03d}]\n" \
                         "type = drive\n" \
@@ -54,15 +55,15 @@ def gen_remote_template(src_or_dest, parsed_config, args, is_config_file_specifi
                         "service_account_file = {}\n"
                     if remote.team_drive:
                         remote_template += "{} = {}\n\n".format("team_drive", remote.team_drive)
-                    elif remote.source_path_id:
-                        remote_template += "{} = {}\n\n".format("source_path_id", remote.source_path_id)
+                    elif remote.root_folder_id:
+                        remote_template += "{} = {}\n\n".format("root_folder_id", remote.root_folder_id)
 
             # If remote is found exit loop
             if found:
                 break
 
     if not found:
-        if len(src_or_dest) == 33:
+        if len(src_or_dest) == [28,33]:
             folder_or_team_drive_src = 'root_folder_id'
         elif len(src_or_dest) == 19:
             folder_or_team_drive_src = 'team_drive'
@@ -98,7 +99,7 @@ def gen_rclone_cfg(args, filepath):
     parsed_config = None
     if args.rclone_config_path:
         is_config_file_specified = True
-        parsed_config = config_parser.parse_config(args.rclone_config_path)
+        parsed_config = config_parser.parse_config(args.rclone_config_path, args)
 
     # Source parsing
     if args.source:
