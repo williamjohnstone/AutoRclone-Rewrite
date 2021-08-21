@@ -7,27 +7,29 @@ NOTE: This is a work in progress, here is a todo list
 ## TODO
 
 - [ ] Add ability to watch folder
-- [x] Add estimated time of completion
-- [ ] Fix ETA for some edge cases (syncing files, etc. where whole source will not be transferred)
-- [x] Rewrite output, make it less ugly, proposed layout: `[AutoRClone] (Job Name) amount transferred/total transfer amount @ <transfer speed here> SA: <num of SA here> ETA: <ETA Here>`
-- [x] Add command line args to choose between copy, move or sync
-- [x] Add bandwidth Limiting
-- [x] Implement proper support for encrypted sources and destinations
-- [x] Remove rc connect failed output messages to reduce confusion
-- [x] Add more command line args to set RClone args
-- [x] Make RClone command much less hardcoded
-- [x] Allow reading remotes from external RClone config
-- [x] Add better logging
+- [ ] Retain amount transferred between SAs
 - [ ] Rewrite `add_to_google_group.py`, `add_to_team_drive.py` and `gen_sa_accounts.py` to make them more intuitive and fix broken english
 - [ ] Write instructions
 - [ ] Add debug logging
-- [x] Replace all prints with new logger
-- [x] Replace `sys.exit()` calls with messages with proper logging
-- [x] Implement my own transfer speed calculator as the speeds RClone is reporting seem to be off
-- [x] Retain amount transferred between SAs
-- [ ] Automatically rotate SAs that have reached their 24hr quota
-- [x] Ignore no bytes transferred if file checks are increasing
 - [ ] Finish command line argument documentation
+
+
+- [x] ~~Add estimated time of completion~~
+- [x] ~~Fix ETA for some edge cases (syncing files, etc. where whole source will not be transferred)~~
+- [x] ~~Rewrite output, make it less ugly, proposed layout: `[AutoRClone] (Job Name) amount transferred/total transfer amount @ <transfer speed here> SA: <num of SA here> ETA: <ETA Here>`~~
+- [x] ~~Add command line args to choose between copy, move or sync~~
+- [x] ~~Add bandwidth Limiting~~
+- [x] ~~Implement proper support for encrypted sources and destinations~~
+- [x] ~~Remove rc connect failed output messages to reduce confusion~~
+- [x] ~~Add more command line args to set RClone args~~
+- [x] ~~Make RClone command much less hardcoded~~
+- [x] ~~Allow reading remotes from external RClone config~~
+- [x] ~~Add better logging~~
+- [x] ~~Replace all prints with new logger~~
+- [x] ~~Replace `sys.exit()` calls with messages with proper logging~~
+- [x] ~~Implement my own transfer speed calculator as the speeds RClone is reporting seem to be off~~
+- [x] ~~Automatically rotate SAs that have reached their 24hr quota~~
+- [x] ~~Ignore no bytes transferred if file checks are increasing~~
 
 *Instructions will be written once the rewrite is complete.*
 
@@ -182,5 +184,3 @@ Example Usage: `python3 autorclone.py --copy -s <source> -d <destination>`
 
 Description: **Copy files from source to destination.**
 Example Usage: `python3 autorclone.py --copy -s <source> -d <destination>`
-
-
