@@ -45,11 +45,13 @@ def calculate_path_size(config_file, src_label, dst_label, action):
     cmd = ['rclone', '--config', config_file, action, '--dry-run', src_label, dst_label]
     pattern = re.compile("([\d,]+\.\d+? [A-z]{6}), ([0-9]{1,3})", re.M)
     process = subprocess.Popen(cmd, shell=False, stderr=subprocess.PIPE)
-    for line in process.stdout:
-        match = re.search(pattern, line.decode('utf-8'))
-        if match and match[2] == "100":
-            return(rclone_size_to_bytes(match[1]))
-    return 0
+    if process.stdout:
+        for line in process.stdout:
+            match = re.search(pattern, line.decode('utf-8'))
+            if match and match[2] == "100":
+                return(rclone_size_to_bytes(match[1]))
+    else:
+        return 0
 
 # Inspired from https://stackoverflow.com/a/42865957
 def rclone_size_to_bytes(size):
